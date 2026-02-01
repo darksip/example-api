@@ -7,9 +7,10 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/halap': {
-        target: 'https://haldev.cybermeet.fr',
+        target: process.env.VITE_HALAPI_URL || 'https://haldev.cybermeet.fr',
         changeOrigin: true,
         secure: true,
+        rewrite: (path) => path.replace(/^\/api\/halap/, ''),
       },
     },
   },
