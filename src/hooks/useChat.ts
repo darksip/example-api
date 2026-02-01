@@ -82,6 +82,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
             case 'artifacts':
               artifacts = event.data;
+              console.log('[useChat] Artifacts received from stream:', artifacts);
               break;
 
             case 'done':
