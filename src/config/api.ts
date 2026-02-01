@@ -5,6 +5,9 @@ const STORAGE_KEYS = {
   API_TOKEN: 'halapi_token',
 } as const;
 
+// Default API URL uses proxy in development to avoid CORS issues
+const DEFAULT_API_URL = import.meta.env.DEV ? '/api/halap' : (import.meta.env.VITE_HALAPI_URL || '');
+
 export interface ApiConfig {
   apiUrl: string;
   apiToken: string;
@@ -15,7 +18,7 @@ export function getApiConfig(): ApiConfig {
   const storedToken = localStorage.getItem(STORAGE_KEYS.API_TOKEN);
 
   return {
-    apiUrl: storedUrl || import.meta.env.VITE_HALAPI_URL || '',
+    apiUrl: storedUrl || DEFAULT_API_URL,
     apiToken: storedToken || import.meta.env.VITE_HALAPI_TOKEN || '',
   };
 }
