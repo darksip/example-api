@@ -57,6 +57,8 @@ export async function* chatStream(
   const conversationId = response.headers.get('X-Conversation-Id');
   const messageId = response.headers.get('X-Message-Id');
 
+  console.log('[halapi] chatStream response headers:', { conversationId, messageId });
+
   const reader = response.body?.getReader();
   if (!reader) {
     throw new Error('Response body is not readable');
@@ -78,6 +80,9 @@ export async function* chatStream(
         if (line.startsWith('data: ')) {
           try {
             const event = JSON.parse(line.slice(6)) as SSEEvent;
+            if (event.type === 'artifacts') {
+              console.log('[halapi] SSE artifacts event received:', event.data);
+            }
             yield event;
           } catch {
             // Skip malformed JSON lines
@@ -179,7 +184,9 @@ export async function getBookArtifacts(
     );
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('[halapi] getBookArtifacts response:', data);
+  return data;
 }
 
 export async function getMusicArtifacts(
@@ -207,7 +214,9 @@ export async function getMusicArtifacts(
     );
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('[halapi] getMusicArtifacts response:', data);
+  return data;
 }
 
 // Helper to extract artifacts from SSE events
