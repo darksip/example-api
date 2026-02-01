@@ -5,8 +5,9 @@ const STORAGE_KEYS = {
   API_TOKEN: 'halapi_token',
 } as const;
 
-// Default API URL uses proxy in development to avoid CORS issues
-const DEFAULT_API_URL = import.meta.env.DEV ? '/api/halap' : (import.meta.env.VITE_HALAPI_URL || '');
+// In development, use empty string so requests go to /api/halap/* which is proxied by Vite
+// In production, use the configured environment variable
+const DEFAULT_API_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_HALAPI_URL || '');
 
 export interface ApiConfig {
   apiUrl: string;
@@ -17,8 +18,16 @@ export function getApiConfig(): ApiConfig {
   const storedUrl = localStorage.getItem(STORAGE_KEYS.API_URL);
   const storedToken = localStorage.getItem(STORAGE_KEYS.API_TOKEN);
 
+  // In development, use the proxy (empty URL) to avoid CORS issues
+  // unless the user has configured a different URL
+  let apiUrl = storedUrl || DEFAULT_API_URL;
+  if (import.meta.env.DEV && storedUrl?.includes('haldev.cybermeet.fr')) {
+    // Use proxy instead of direct connection to avoid CORS
+    apiUrl = '';
+  }
+
   return {
-    apiUrl: storedUrl || DEFAULT_API_URL,
+    apiUrl,
     apiToken: storedToken || import.meta.env.VITE_HALAPI_TOKEN || '',
   };
 }
@@ -43,5 +52,10 @@ export function setApiConfig(config: Partial<ApiConfig>): void {
 
 export function isConfigured(): boolean {
   const config = getApiConfig();
+  // In development, apiUrl can be empty (uses proxy), so only check token
+  // In production, both apiUrl and apiToken are required
+  if (import.meta.env.DEV) {
+    return Boolean(config.apiToken);
+  }
   return Boolean(config.apiUrl && config.apiToken);
 }

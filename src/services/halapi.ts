@@ -28,8 +28,8 @@ export async function* chatStream(
 ): AsyncGenerator<SSEEvent, ChatStreamResult, undefined> {
   const { apiUrl, apiToken } = getApiConfig();
 
-  if (!apiUrl || !apiToken) {
-    throw new Error('API not configured. Please set URL and token in Settings.');
+  if (!apiToken) {
+    throw new Error('API not configured. Please set token in Settings.');
   }
 
   const response = await fetch(`${apiUrl}/api/halap/chat/stream`, {
@@ -98,8 +98,8 @@ export async function getConversations(
 ): Promise<ConversationsListResponse> {
   const { apiUrl, apiToken } = getApiConfig();
 
-  if (!apiUrl || !apiToken) {
-    throw new Error('API not configured. Please set URL and token in Settings.');
+  if (!apiToken) {
+    throw new Error('API not configured. Please set token in Settings.');
   }
 
   const params = new URLSearchParams({ limit: String(limit) });
@@ -131,8 +131,8 @@ export async function getConversation(
 ): Promise<ConversationDetailResponse> {
   const { apiUrl, apiToken } = getApiConfig();
 
-  if (!apiUrl || !apiToken) {
-    throw new Error('API not configured. Please set URL and token in Settings.');
+  if (!apiToken) {
+    throw new Error('API not configured. Please set token in Settings.');
   }
 
   const response = await fetch(
@@ -159,8 +159,8 @@ export async function getBookArtifacts(
 ): Promise<BookArtifactsResponse> {
   const { apiUrl, apiToken } = getApiConfig();
 
-  if (!apiUrl || !apiToken) {
-    throw new Error('API not configured. Please set URL and token in Settings.');
+  if (!apiToken) {
+    throw new Error('API not configured. Please set token in Settings.');
   }
 
   const response = await fetch(
@@ -187,8 +187,8 @@ export async function getMusicArtifacts(
 ): Promise<MusicArtifactsResponse> {
   const { apiUrl, apiToken } = getApiConfig();
 
-  if (!apiUrl || !apiToken) {
-    throw new Error('API not configured. Please set URL and token in Settings.');
+  if (!apiToken) {
+    throw new Error('API not configured. Please set token in Settings.');
   }
 
   const response = await fetch(
