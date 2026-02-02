@@ -13,12 +13,67 @@ function formatDuration(seconds: number): string {
 export function MusicCard({ music }: MusicCardProps) {
   const isAlbum = music.type === 'album';
 
+  // Get cover URL (handle multiple possible fields)
+  const getCoverUrl = (): string | undefined => {
+    if (isAlbum) {
+      return music.coverUrl;
+    }
+    return music.imageUrl || music.albumImageUrl || music.coverUrl;
+  };
+
+  // Get title (handle 'track' field for tracks)
+  const getTitle = (): string => {
+    if (!isAlbum && music.track) {
+      return music.track;
+    }
+    return music.title;
+  };
+
+  // Get artist name (handle multiple possible fields)
+  const getArtist = (): string => {
+    if (!isAlbum) {
+      return music.artist_name || music.artiste || music.artist;
+    }
+    return music.artist;
+  };
+
+  // Get album name for tracks
+  const getAlbumName = (): string | undefined => {
+    if (!isAlbum) {
+      return music.album_name || music.album;
+    }
+    return undefined;
+  };
+
+  // Get duration (handle 'timing' field)
+  const getDuration = (): number | undefined => {
+    if (!isAlbum) {
+      return music.timing || music.duration;
+    }
+    return undefined;
+  };
+
+  // Get year from street_date if available
+  const getYear = (): number | string | undefined => {
+    if (!isAlbum && music.street_date) {
+      return music.street_date.substring(0, 4);
+    }
+    return music.year;
+  };
+
+  const coverUrl = getCoverUrl();
+  const title = getTitle();
+  const artist = getArtist();
+  const albumName = getAlbumName();
+  const duration = getDuration();
+  const year = getYear();
+
   return (
     <div className="artifact-card music-card">
-      {music.coverUrl && (
+      {coverUrl && (
         <img
-          src={music.coverUrl}
-          alt={music.title}
+          src={coverUrl}
+          alt={title}
           className="artifact-cover"
         />
       )}
@@ -26,21 +81,31 @@ export function MusicCard({ music }: MusicCardProps) {
         <span className="artifact-type-badge">
           {isAlbum ? 'Album' : 'Track'}
         </span>
-        <strong className="artifact-title">{music.title}</strong>
-        <span className="artifact-author">{music.artist}</span>
-        {music.year && <span className="artifact-year">({music.year})</span>}
+        <strong className="artifact-title">{title}</strong>
+        <span className="artifact-author">{artist}</span>
+        {year && <span className="artifact-year">({year})</span>}
 
         {isAlbum && music.label && (
           <span className="artifact-label">Label: {music.label}</span>
         )}
 
-        {!isAlbum && music.album && (
-          <span className="artifact-album">Album: {music.album}</span>
+        {!isAlbum && music.label && (
+          <span className="artifact-label">Label: {music.label}</span>
         )}
 
-        {!isAlbum && music.duration && (
+        {albumName && (
+          <span className="artifact-album">Album: {albumName}</span>
+        )}
+
+        {!isAlbum && music.num_track && music.num_disc && (
+          <span className="artifact-track-info">
+            Disc {music.num_disc}, Track {music.num_track}
+          </span>
+        )}
+
+        {duration && (
           <span className="artifact-duration">
-            {formatDuration(music.duration)}
+            {formatDuration(duration)}
           </span>
         )}
 

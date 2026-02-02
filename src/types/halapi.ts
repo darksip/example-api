@@ -28,12 +28,26 @@ export interface MusicAlbum {
 
 export interface MusicTrackItem {
   type: 'track';
+  cb?: string;
+  cb_track_id?: string;
+  track?: string;
   title: string;
   artist: string;
+  artist_name?: string;
+  artiste?: string;
   album?: string;
+  album_name?: string;
   year?: number;
   duration?: number;
+  timing?: number;
+  num_disc?: number;
+  num_track?: number;
+  scoring?: number;
+  label?: string;
+  street_date?: string;
   coverUrl?: string;
+  imageUrl?: string;
+  albumImageUrl?: string;
 }
 
 export type Music = MusicAlbum | MusicTrackItem;
