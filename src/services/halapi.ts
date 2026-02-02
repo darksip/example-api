@@ -32,7 +32,10 @@ export async function* chatStream(
     throw new Error('API not configured. Please set token in Settings.');
   }
 
-  const response = await fetch(`${apiUrl}/api/halap/chat/stream`, {
+  const fullUrl = `${apiUrl}/api/halap/chat/stream`;
+  console.log('[halapi] chatStream URL:', fullUrl);
+
+  const response = await fetch(fullUrl, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiToken}`,
@@ -80,9 +83,7 @@ export async function* chatStream(
         if (line.startsWith('data: ')) {
           try {
             const event = JSON.parse(line.slice(6)) as SSEEvent;
-            if (event.type === 'artifacts') {
-              console.log('[halapi] SSE artifacts event received:', event.data);
-            }
+            console.log('[halapi] SSE event received:', event.type, event.type === 'text-delta' ? '(delta)' : JSON.stringify(event.data));
             yield event;
           } catch {
             // Skip malformed JSON lines
