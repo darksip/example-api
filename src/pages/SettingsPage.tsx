@@ -1,37 +1,37 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { getApiConfig, setApiConfig, isConfigured } from '../config/api';
+import { type FormEvent, useEffect, useState } from 'react'
+import { getApiConfig, isConfigured, setApiConfig } from '../config/api'
 
 interface SettingsPageProps {
-  onSave: () => void;
+  onSave: () => void
 }
 
 export function SettingsPage({ onSave }: SettingsPageProps) {
-  const [apiUrl, setApiUrl] = useState('');
-  const [apiToken, setApiToken] = useState('');
-  const [saved, setSaved] = useState(false);
+  const [apiUrl, setApiUrl] = useState('')
+  const [apiToken, setApiToken] = useState('')
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    const config = getApiConfig();
-    setApiUrl(config.apiUrl);
-    setApiToken(config.apiToken);
-  }, []);
+    const config = getApiConfig()
+    setApiUrl(config.apiUrl)
+    setApiToken(config.apiToken)
+  }, [])
 
   const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setApiConfig({ apiUrl, apiToken });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    onSave();
-  };
+    e.preventDefault()
+    setApiConfig({ apiUrl, apiToken })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+    onSave()
+  }
 
   const handleClear = () => {
-    setApiConfig({ apiUrl: '', apiToken: '' });
-    setApiUrl('');
-    setApiToken('');
-    setSaved(false);
-  };
+    setApiConfig({ apiUrl: '', apiToken: '' })
+    setApiUrl('')
+    setApiToken('')
+    setSaved(false)
+  }
 
-  const configured = isConfigured();
+  const configured = isConfigured()
 
   return (
     <div className="settings-page">
@@ -47,9 +47,7 @@ export function SettingsPage({ onSave }: SettingsPageProps) {
             onChange={(e) => setApiUrl(e.target.value)}
             placeholder="https://your-domain.com"
           />
-          <span className="form-hint">
-            The base URL of the Halapi server (without /api/halap)
-          </span>
+          <span className="form-hint">The base URL of the Halapi server (without /api/halap)</span>
         </div>
 
         <div className="form-group">
@@ -61,9 +59,7 @@ export function SettingsPage({ onSave }: SettingsPageProps) {
             onChange={(e) => setApiToken(e.target.value)}
             placeholder="hap_sk_live_..."
           />
-          <span className="form-hint">
-            Your Halapi API token starting with hap_sk_live_
-          </span>
+          <span className="form-hint">Your Halapi API token starting with hap_sk_live_</span>
         </div>
 
         <div className="form-actions">
@@ -71,19 +67,13 @@ export function SettingsPage({ onSave }: SettingsPageProps) {
             Save Settings
           </button>
           {configured && (
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={handleClear}
-            >
+            <button type="button" className="btn btn-danger" onClick={handleClear}>
               Clear Configuration
             </button>
           )}
         </div>
 
-        {saved && (
-          <div className="success-message">Settings saved successfully!</div>
-        )}
+        {saved && <div className="success-message">Settings saved successfully!</div>}
       </form>
 
       <div className="settings-info">
@@ -94,27 +84,20 @@ export function SettingsPage({ onSave }: SettingsPageProps) {
             {configured ? 'Configured' : 'Not Configured'}
           </span>
         </p>
-        {!configured && (
-          <p className="hint">
-            Both URL and token are required to use the API.
-          </p>
-        )}
+        {!configured && <p className="hint">Both URL and token are required to use the API.</p>}
       </div>
 
       <div className="settings-info">
         <h3>Environment Variables</h3>
         <p>
-          You can also configure the API using environment variables in your{' '}
-          <code>.env</code> file:
+          You can also configure the API using environment variables in your <code>.env</code> file:
         </p>
         <pre>
           VITE_HALAPI_URL=https://your-domain.com{'\n'}
           VITE_HALAPI_TOKEN=hap_sk_live_...
         </pre>
-        <p className="hint">
-          Settings saved here will override environment variables.
-        </p>
+        <p className="hint">Settings saved here will override environment variables.</p>
       </div>
     </div>
-  );
+  )
 }

@@ -1,18 +1,18 @@
-import { useConversations } from '../hooks/useConversations';
-import { ConversationItem } from '../components/ConversationItem';
-import { isConfigured } from '../config/api';
+import { ConversationItem } from '../components/ConversationItem'
+import { isConfigured } from '../config/api'
+import { useConversations } from '../hooks/useConversations'
 
 interface ConversationsPageProps {
-  onSelectConversation: (id: string) => void;
-  onNavigateToSettings: () => void;
+  onSelectConversation: (id: string) => void
+  onNavigateToSettings: () => void
 }
 
 export function ConversationsPage({
   onSelectConversation,
   onNavigateToSettings,
 }: ConversationsPageProps) {
-  const { conversations, isLoading, error, refresh } = useConversations();
-  const configured = isConfigured();
+  const { conversations, isLoading, error, refresh } = useConversations()
+  const configured = isConfigured()
 
   if (!configured) {
     return (
@@ -20,28 +20,19 @@ export function ConversationsPage({
         <div className="chat-unconfigured">
           <h2>Configuration Required</h2>
           <p>Please configure the API URL and token to view conversations.</p>
-          <button
-            className="btn btn-primary"
-            onClick={onNavigateToSettings}
-            type="button"
-          >
+          <button className="btn btn-primary" onClick={onNavigateToSettings} type="button">
             Go to Settings
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="conversations-page">
       <div className="page-header">
         <h2>Conversations</h2>
-        <button
-          className="btn btn-secondary"
-          onClick={refresh}
-          disabled={isLoading}
-          type="button"
-        >
+        <button className="btn btn-secondary" onClick={refresh} disabled={isLoading} type="button">
           {isLoading ? 'Loading...' : 'Refresh'}
         </button>
       </div>
@@ -67,5 +58,5 @@ export function ConversationsPage({
         )}
       </div>
     </div>
-  );
+  )
 }

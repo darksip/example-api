@@ -1,29 +1,29 @@
-import { useEffect, useRef } from 'react';
-import { useChat } from '../hooks/useChat';
-import { ChatMessage } from '../components/ChatMessage';
-import { ChatInput } from '../components/ChatInput';
-import { isConfigured } from '../config/api';
+import { useEffect, useRef } from 'react'
+import { ChatInput } from '../components/ChatInput'
+import { ChatMessage } from '../components/ChatMessage'
+import { isConfigured } from '../config/api'
+import { useChat } from '../hooks/useChat'
 
 interface ChatPageProps {
-  conversationId?: string;
-  onNavigateToSettings: () => void;
+  conversationId?: string
+  onNavigateToSettings: () => void
 }
 
 export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps) {
   const { messages, isStreaming, error, sendMessage, stopStreaming, loadConversation, clearChat } =
-    useChat({ initialConversationId: conversationId });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const configured = isConfigured();
+    useChat({ initialConversationId: conversationId })
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const configured = isConfigured()
 
   useEffect(() => {
     if (conversationId) {
-      loadConversation(conversationId);
+      loadConversation(conversationId)
     }
-  }, [conversationId, loadConversation]);
+  }, [conversationId, loadConversation])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   if (!configured) {
     return (
@@ -31,16 +31,12 @@ export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps
         <div className="chat-unconfigured">
           <h2>Configuration Required</h2>
           <p>Please configure the API URL and token to start chatting.</p>
-          <button
-            className="btn btn-primary"
-            onClick={onNavigateToSettings}
-            type="button"
-          >
+          <button className="btn btn-primary" onClick={onNavigateToSettings} type="button">
             Go to Settings
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -48,11 +44,7 @@ export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps
       <div className="chat-header">
         <h2>Chat</h2>
         {messages.length > 0 && (
-          <button
-            className="btn btn-secondary"
-            onClick={clearChat}
-            type="button"
-          >
+          <button className="btn btn-secondary" onClick={clearChat} type="button">
             New Chat
           </button>
         )}
@@ -67,18 +59,12 @@ export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps
             <p className="hint">Example: "Recommend me some classic jazz albums"</p>
           </div>
         ) : (
-          messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))
+          messages.map((message) => <ChatMessage key={message.id} message={message} />)
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatInput
-        onSend={sendMessage}
-        onStop={stopStreaming}
-        isStreaming={isStreaming}
-      />
+      <ChatInput onSend={sendMessage} onStop={stopStreaming} isStreaming={isStreaming} />
     </div>
-  );
+  )
 }

@@ -1,30 +1,30 @@
-import { useState, useCallback } from 'react';
-import { Layout, type Page } from './components/Layout';
-import { ChatPage } from './pages/ChatPage';
-import { ConversationsPage } from './pages/ConversationsPage';
-import { SettingsPage } from './pages/SettingsPage';
+import { useCallback, useState } from 'react'
+import { Layout, type Page } from './components/Layout'
+import { ChatPage } from './pages/ChatPage'
+import { ConversationsPage } from './pages/ConversationsPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('chat');
-  const [selectedConversationId, setSelectedConversationId] = useState<
-    string | undefined
-  >(undefined);
+  const [currentPage, setCurrentPage] = useState<Page>('chat')
+  const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>(
+    undefined
+  )
 
   const handleNavigate = useCallback((page: Page) => {
-    setCurrentPage(page);
+    setCurrentPage(page)
     if (page !== 'chat') {
-      setSelectedConversationId(undefined);
+      setSelectedConversationId(undefined)
     }
-  }, []);
+  }, [])
 
   const handleSelectConversation = useCallback((id: string) => {
-    setSelectedConversationId(id);
-    setCurrentPage('chat');
-  }, []);
+    setSelectedConversationId(id)
+    setCurrentPage('chat')
+  }, [])
 
   const handleSettingsSave = useCallback(() => {
     // Force re-render of current page when settings are saved
-  }, []);
+  }, [])
 
   const renderPage = () => {
     switch (currentPage) {
@@ -34,24 +34,24 @@ function App() {
             conversationId={selectedConversationId}
             onNavigateToSettings={() => handleNavigate('settings')}
           />
-        );
+        )
       case 'conversations':
         return (
           <ConversationsPage
             onSelectConversation={handleSelectConversation}
             onNavigateToSettings={() => handleNavigate('settings')}
           />
-        );
+        )
       case 'settings':
-        return <SettingsPage onSave={handleSettingsSave} />;
+        return <SettingsPage onSave={handleSettingsSave} />
     }
-  };
+  }
 
   return (
     <Layout currentPage={currentPage} onNavigate={handleNavigate}>
       {renderPage()}
     </Layout>
-  );
+  )
 }
 
-export default App;
+export default App

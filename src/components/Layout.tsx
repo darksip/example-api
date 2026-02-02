@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
-export type Page = 'chat' | 'conversations' | 'settings';
+export type Page = 'chat' | 'conversations' | 'settings'
 
 interface LayoutProps {
-  children: ReactNode;
-  currentPage: Page;
-  onNavigate: (page: Page) => void;
+  children: ReactNode
+  currentPage: Page
+  onNavigate: (page: Page) => void
 }
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
@@ -39,5 +39,5 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       </header>
       <main className="layout-main">{children}</main>
     </div>
-  );
+  )
 }

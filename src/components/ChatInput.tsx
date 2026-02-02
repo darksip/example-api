@@ -1,36 +1,31 @@
-import { useState, useCallback, type KeyboardEvent } from 'react';
+import { type KeyboardEvent, useCallback, useState } from 'react'
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
-  onStop: () => void;
-  isStreaming: boolean;
-  disabled?: boolean;
+  onSend: (message: string) => void
+  onStop: () => void
+  isStreaming: boolean
+  disabled?: boolean
 }
 
-export function ChatInput({
-  onSend,
-  onStop,
-  isStreaming,
-  disabled = false,
-}: ChatInputProps) {
-  const [input, setInput] = useState('');
+export function ChatInput({ onSend, onStop, isStreaming, disabled = false }: ChatInputProps) {
+  const [input, setInput] = useState('')
 
   const handleSend = useCallback(() => {
     if (input.trim() && !isStreaming && !disabled) {
-      onSend(input);
-      setInput('');
+      onSend(input)
+      setInput('')
     }
-  }, [input, isStreaming, disabled, onSend]);
+  }, [input, isStreaming, disabled, onSend])
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        handleSend();
+        e.preventDefault()
+        handleSend()
       }
     },
     [handleSend]
-  );
+  )
 
   return (
     <div className="chat-input-container">
@@ -45,11 +40,7 @@ export function ChatInput({
       />
       <div className="chat-input-actions">
         {isStreaming ? (
-          <button
-            className="btn btn-danger"
-            onClick={onStop}
-            type="button"
-          >
+          <button className="btn btn-danger" onClick={onStop} type="button">
             Stop
           </button>
         ) : (
@@ -64,5 +55,5 @@ export function ChatInput({
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,156 +1,156 @@
 // Types for Halapi API
 
 export interface Book {
-  title: string;
-  author: string;
-  isbn?: string;
-  year?: number;
-  coverUrl?: string;
-  description?: string;
-  subjects?: string[];
+  title: string
+  author: string
+  isbn?: string
+  year?: number
+  coverUrl?: string
+  description?: string
+  subjects?: string[]
 }
 
 export interface MusicTrack {
-  title: string;
-  duration?: number;
+  title: string
+  duration?: number
 }
 
 export interface MusicAlbum {
-  type: 'album';
-  title: string;
-  artist: string;
-  year?: number;
-  label?: string;
-  coverUrl?: string;
-  tracks?: MusicTrack[];
-  genres?: string[];
+  type: 'album'
+  title: string
+  artist: string
+  year?: number
+  label?: string
+  coverUrl?: string
+  tracks?: MusicTrack[]
+  genres?: string[]
 }
 
 export interface MusicTrackItem {
-  type: 'track';
-  cb?: string;
-  cb_track_id?: string;
-  track?: string;
-  title: string;
-  artist: string;
-  artist_name?: string;
-  artiste?: string;
-  album?: string;
-  album_name?: string;
-  year?: number;
-  duration?: number;
-  timing?: number;
-  num_disc?: number;
-  num_track?: number;
-  scoring?: number;
-  label?: string;
-  street_date?: string;
-  coverUrl?: string;
-  imageUrl?: string;
-  albumImageUrl?: string;
+  type: 'track'
+  cb?: string
+  cb_track_id?: string
+  track?: string
+  title: string
+  artist: string
+  artist_name?: string
+  artiste?: string
+  album?: string
+  album_name?: string
+  year?: number
+  duration?: number
+  timing?: number
+  num_disc?: number
+  num_track?: number
+  scoring?: number
+  label?: string
+  street_date?: string
+  coverUrl?: string
+  imageUrl?: string
+  albumImageUrl?: string
 }
 
-export type Music = MusicAlbum | MusicTrackItem;
+export type Music = MusicAlbum | MusicTrackItem
 
 export interface Artifacts {
-  books: Book[];
-  music: Music[];
+  books: Book[]
+  music: Music[]
 }
 
 export interface Message {
-  id: string;
-  conversationId: string;
-  role: 'user' | 'assistant';
-  content: string;
-  artifacts?: Artifacts;
-  createdAt: number;
-  isStreaming?: boolean;
-  costSummary?: CostSummary;
-  agentUsed?: string;
-  modelUsed?: string;
-  tokensInput?: number;
-  tokensOutput?: number;
-  executionTimeMs?: number;
+  id: string
+  conversationId: string
+  role: 'user' | 'assistant'
+  content: string
+  artifacts?: Artifacts
+  createdAt: number
+  isStreaming?: boolean
+  costSummary?: CostSummary
+  agentUsed?: string
+  modelUsed?: string
+  tokensInput?: number
+  tokensOutput?: number
+  executionTimeMs?: number
 }
 
 export interface CostSummary {
   llm: {
-    baseCost: number;
-    withMargin: number;
-  };
+    baseCost: number
+    withMargin: number
+  }
   total: {
-    baseCost: number;
-    withMargin: number;
-  };
+    baseCost: number
+    withMargin: number
+  }
 }
 
 export interface Conversation {
-  id: string;
-  organizationId?: string;
-  externalUserId?: string;
-  metadata?: Record<string, unknown>;
-  createdAt: number;
-  updatedAt: number;
-  messageCount: number;
+  id: string
+  organizationId?: string
+  externalUserId?: string
+  metadata?: Record<string, unknown>
+  createdAt: number
+  updatedAt: number
+  messageCount: number
 }
 
 // SSE Event Types
 export interface SSETextDeltaEvent {
-  type: 'text-delta';
+  type: 'text-delta'
   data: {
-    delta: string;
-  };
+    delta: string
+  }
 }
 
 export interface SSEToolCallEvent {
-  type: 'tool-call';
+  type: 'tool-call'
   data: {
-    toolName: string;
-    toolCallId: string;
-    args: Record<string, unknown>;
-  };
+    toolName: string
+    toolCallId: string
+    args: Record<string, unknown>
+  }
 }
 
 export interface SSEToolResultEvent {
-  type: 'tool-result';
+  type: 'tool-result'
   data: {
-    toolCallId: string;
-    result: unknown;
-    success: boolean;
-  };
+    toolCallId: string
+    result: unknown
+    success: boolean
+  }
 }
 
 export interface SSEArtifactsEvent {
-  type: 'artifacts';
-  data: Artifacts;
+  type: 'artifacts'
+  data: Artifacts
 }
 
 export interface SSECostEvent {
-  type: 'cost';
+  type: 'cost'
   data: {
-    costSummary: CostSummary;
-  };
+    costSummary: CostSummary
+  }
 }
 
 export interface SSEDoneEvent {
-  type: 'done';
+  type: 'done'
   data: {
-    messageId: string;
-    conversationId: string;
+    messageId: string
+    conversationId: string
     totalTokens: {
-      input: number;
-      output: number;
-    };
-    executionTimeMs: number;
-  };
+      input: number
+      output: number
+    }
+    executionTimeMs: number
+  }
 }
 
 export interface SSEErrorEvent {
-  type: 'error';
+  type: 'error'
   data: {
-    code: string;
-    message: string;
-  };
+    code: string
+    message: string
+  }
 }
 
 export type SSEEvent =
@@ -160,61 +160,61 @@ export type SSEEvent =
   | SSEArtifactsEvent
   | SSECostEvent
   | SSEDoneEvent
-  | SSEErrorEvent;
+  | SSEErrorEvent
 
 // API Response types
 export interface ConversationsListResponse {
-  success: boolean;
-  conversations: Conversation[];
+  success: boolean
+  conversations: Conversation[]
   metadata: {
-    requestId: string;
-    timestamp: string;
-    count: number;
-    hasMore: boolean;
-  };
+    requestId: string
+    timestamp: string
+    count: number
+    hasMore: boolean
+  }
 }
 
 export interface ConversationDetailResponse {
-  success: boolean;
-  conversation: Conversation;
-  messages: Message[];
+  success: boolean
+  conversation: Conversation
+  messages: Message[]
   metadata: {
-    requestId: string;
-    timestamp: string;
-  };
+    requestId: string
+    timestamp: string
+  }
 }
 
 export interface BookArtifactsResponse {
-  success: boolean;
-  messageId: string;
-  books: Book[];
+  success: boolean
+  messageId: string
+  books: Book[]
   metadata: {
-    requestId: string;
-    timestamp: string;
-    count: number;
-  };
+    requestId: string
+    timestamp: string
+    count: number
+  }
 }
 
 export interface MusicArtifactsResponse {
-  success: boolean;
-  messageId: string;
-  music: Music[];
+  success: boolean
+  messageId: string
+  music: Music[]
   metadata: {
-    requestId: string;
-    timestamp: string;
-    count: number;
-  };
+    requestId: string
+    timestamp: string
+    count: number
+  }
 }
 
 export interface ApiError {
-  success: false;
+  success: false
   error: {
-    code: string;
-    message: string;
-    retryAfter?: number;
-  };
+    code: string
+    message: string
+    retryAfter?: number
+  }
   metadata: {
-    requestId: string;
-    timestamp: string;
-  };
+    requestId: string
+    timestamp: string
+  }
 }

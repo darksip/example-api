@@ -1,15 +1,15 @@
-import type { Message } from '../types/halapi';
-import { BookCard } from './BookCard';
-import { MusicCard } from './MusicCard';
+import type { Message } from '../types/halapi'
+import { BookCard } from './BookCard'
+import { MusicCard } from './MusicCard'
 
 interface ChatMessageProps {
-  message: Message;
+  message: Message
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const isUser = message.role === 'user';
-  const hasBooks = message.artifacts?.books && message.artifacts.books.length > 0;
-  const hasMusic = message.artifacts?.music && message.artifacts.music.length > 0;
+  const isUser = message.role === 'user'
+  const hasBooks = message.artifacts?.books && message.artifacts.books.length > 0
+  const hasMusic = message.artifacts?.music && message.artifacts.music.length > 0
 
   return (
     <div className={`chat-message ${isUser ? 'user' : 'assistant'}`}>
@@ -43,5 +43,5 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
       )}
     </div>
-  );
+  )
 }

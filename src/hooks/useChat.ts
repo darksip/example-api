@@ -1,36 +1,36 @@
-import { useState, useRef, useCallback } from 'react';
-import type { Message, Artifacts } from '../types/halapi';
-import { chatStream, getConversation } from '../services/halapi';
+import { useCallback, useRef, useState } from 'react'
+import { chatStream, getConversation } from '../services/halapi'
+import type { Artifacts, Message } from '../types/halapi'
 
 interface UseChatOptions {
-  initialConversationId?: string;
+  initialConversationId?: string
 }
 
 interface UseChatReturn {
-  messages: Message[];
-  isStreaming: boolean;
-  conversationId: string | null;
-  error: string | null;
-  sendMessage: (query: string) => Promise<void>;
-  stopStreaming: () => void;
-  loadConversation: (id: string) => Promise<void>;
-  clearChat: () => void;
+  messages: Message[]
+  isStreaming: boolean
+  conversationId: string | null
+  error: string | null
+  sendMessage: (query: string) => Promise<void>
+  stopStreaming: () => void
+  loadConversation: (id: string) => Promise<void>
+  clearChat: () => void
 }
 
 export function useChat(options: UseChatOptions = {}): UseChatReturn {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isStreaming, setIsStreaming] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(
     options.initialConversationId || null
-  );
-  const [error, setError] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  )
+  const [error, setError] = useState<string | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const sendMessage = useCallback(
     async (query: string) => {
-      if (!query.trim() || isStreaming) return;
+      if (!query.trim() || isStreaming) return
 
-      setError(null);
+      setError(null)
 
       // Add user message
       const userMessage: Message = {
@@ -39,10 +39,10 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         role: 'user',
         content: query,
         createdAt: Date.now(),
-      };
+      }
 
       // Add placeholder for assistant response
-      const assistantId = crypto.randomUUID();
+      const assistantId = crypto.randomUUID()
       const assistantMessage: Message = {
         id: assistantId,
         conversationId: conversationId || '',
@@ -50,44 +50,42 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         content: '',
         createdAt: Date.now(),
         isStreaming: true,
-      };
+      }
 
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
-      setIsStreaming(true);
+      setMessages((prev) => [...prev, userMessage, assistantMessage])
+      setIsStreaming(true)
 
       try {
-        abortControllerRef.current = new AbortController();
+        abortControllerRef.current = new AbortController()
 
-        let fullContent = '';
-        let artifacts: Artifacts = { books: [], music: [] };
-        let newConversationId = conversationId;
-        let finalMessageId: string | null = null;
+        let fullContent = ''
+        let artifacts: Artifacts = { books: [], music: [] }
+        let newConversationId = conversationId
+        let finalMessageId: string | null = null
 
         const stream = chatStream({
           query,
           conversationId: conversationId || undefined,
           signal: abortControllerRef.current.signal,
-        });
+        })
 
         for await (const event of stream) {
           switch (event.type) {
             case 'text-delta':
-              fullContent += event.data.delta;
+              fullContent += event.data.delta
               setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: fullContent } : m
-                )
-              );
-              break;
+                prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m))
+              )
+              break
 
             case 'artifacts':
-              artifacts = event.data;
-              console.log('[useChat] Artifacts received from stream:', artifacts);
-              break;
+              artifacts = event.data
+              console.log('[useChat] Artifacts received from stream:', artifacts)
+              break
 
             case 'done':
-              newConversationId = event.data.conversationId;
-              finalMessageId = event.data.messageId;
+              newConversationId = event.data.conversationId
+              finalMessageId = event.data.messageId
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId
@@ -104,25 +102,23 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                       }
                     : m
                 )
-              );
+              )
               if (newConversationId) {
-                setConversationId(newConversationId);
+                setConversationId(newConversationId)
               }
-              break;
+              break
 
             case 'error':
-              throw new Error(event.data.message);
+              throw new Error(event.data.message)
           }
         }
 
         // Mark as complete if no done event received
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === assistantId && m.isStreaming
-              ? { ...m, isStreaming: false, artifacts }
-              : m
+            m.id === assistantId && m.isStreaming ? { ...m, isStreaming: false, artifacts } : m
           )
-        );
+        )
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
           // Streaming was stopped by user
@@ -132,11 +128,10 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                 ? { ...m, isStreaming: false, content: m.content + ' [stopped]' }
                 : m
             )
-          );
+          )
         } else {
-          const errorMessage =
-            err instanceof Error ? err.message : 'An error occurred';
-          setError(errorMessage);
+          const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+          setError(errorMessage)
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
@@ -147,43 +142,42 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                   }
                 : m
             )
-          );
+          )
         }
       } finally {
-        setIsStreaming(false);
-        abortControllerRef.current = null;
+        setIsStreaming(false)
+        abortControllerRef.current = null
       }
     },
     [conversationId, isStreaming]
-  );
+  )
 
   const stopStreaming = useCallback(() => {
-    abortControllerRef.current?.abort();
-  }, []);
+    abortControllerRef.current?.abort()
+  }, [])
 
   const loadConversation = useCallback(async (id: string) => {
     try {
-      setError(null);
-      const response = await getConversation(id);
-      setConversationId(id);
+      setError(null)
+      const response = await getConversation(id)
+      setConversationId(id)
       setMessages(
         response.messages.map((m) => ({
           ...m,
           isStreaming: false,
         }))
-      );
+      )
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to load conversation';
-      setError(errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load conversation'
+      setError(errorMessage)
     }
-  }, []);
+  }, [])
 
   const clearChat = useCallback(() => {
-    setMessages([]);
-    setConversationId(null);
-    setError(null);
-  }, []);
+    setMessages([])
+    setConversationId(null)
+    setError(null)
+  }, [])
 
   return {
     messages,
@@ -194,5 +188,5 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     stopStreaming,
     loadConversation,
     clearChat,
-  };
+  }
 }
