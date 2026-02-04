@@ -4,13 +4,9 @@ import { useConversations } from '../hooks/useConversations'
 
 interface ConversationsPageProps {
   onSelectConversation: (id: string) => void
-  onNavigateToSettings: () => void
 }
 
-export function ConversationsPage({
-  onSelectConversation,
-  onNavigateToSettings,
-}: ConversationsPageProps) {
+export function ConversationsPage({ onSelectConversation }: ConversationsPageProps) {
   const { conversations, isLoading, error, refresh } = useConversations()
   const configured = isConfigured()
 
@@ -19,10 +15,7 @@ export function ConversationsPage({
       <div className="conversations-page">
         <div className="chat-unconfigured">
           <h2>Configuration Required</h2>
-          <p>Please configure the API URL and token to view conversations.</p>
-          <button className="btn btn-primary" onClick={onNavigateToSettings} type="button">
-            Go to Settings
-          </button>
+          <p>Please set VITE_HALAPI_TOKEN in your .env file.</p>
         </div>
       </div>
     )

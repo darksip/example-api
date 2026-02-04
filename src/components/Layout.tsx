@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type Page = 'chat' | 'conversations' | 'settings'
+export type Page = 'chat' | 'conversations'
 
 interface LayoutProps {
   children: ReactNode
@@ -27,13 +27,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             type="button"
           >
             Conversations
-          </button>
-          <button
-            className={`nav-item ${currentPage === 'settings' ? 'active' : ''}`}
-            onClick={() => onNavigate('settings')}
-            type="button"
-          >
-            Settings
           </button>
         </nav>
       </header>

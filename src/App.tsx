@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react'
 import { Layout, type Page } from './components/Layout'
 import { ChatPage } from './pages/ChatPage'
 import { ConversationsPage } from './pages/ConversationsPage'
-import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('chat')
@@ -22,28 +21,12 @@ function App() {
     setCurrentPage('chat')
   }, [])
 
-  const handleSettingsSave = useCallback(() => {
-    // Force re-render of current page when settings are saved
-  }, [])
-
   const renderPage = () => {
     switch (currentPage) {
       case 'chat':
-        return (
-          <ChatPage
-            conversationId={selectedConversationId}
-            onNavigateToSettings={() => handleNavigate('settings')}
-          />
-        )
+        return <ChatPage conversationId={selectedConversationId} />
       case 'conversations':
-        return (
-          <ConversationsPage
-            onSelectConversation={handleSelectConversation}
-            onNavigateToSettings={() => handleNavigate('settings')}
-          />
-        )
-      case 'settings':
-        return <SettingsPage onSave={handleSettingsSave} />
+        return <ConversationsPage onSelectConversation={handleSelectConversation} />
     }
   }
 

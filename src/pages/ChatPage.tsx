@@ -6,10 +6,9 @@ import { useChat } from '../hooks/useChat'
 
 interface ChatPageProps {
   conversationId?: string
-  onNavigateToSettings: () => void
 }
 
-export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps) {
+export function ChatPage({ conversationId }: ChatPageProps) {
   const { messages, isStreaming, error, sendMessage, stopStreaming, loadConversation, clearChat } =
     useChat({ initialConversationId: conversationId })
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -21,6 +20,7 @@ export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps
     }
   }, [conversationId, loadConversation])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every message change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -30,10 +30,7 @@ export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps
       <div className="chat-page">
         <div className="chat-unconfigured">
           <h2>Configuration Required</h2>
-          <p>Please configure the API URL and token to start chatting.</p>
-          <button className="btn btn-primary" onClick={onNavigateToSettings} type="button">
-            Go to Settings
-          </button>
+          <p>Please set VITE_HALAPI_TOKEN in your .env file.</p>
         </div>
       </div>
     )
@@ -59,7 +56,9 @@ export function ChatPage({ conversationId, onNavigateToSettings }: ChatPageProps
             <p className="hint">Example: "Recommend me some classic jazz albums"</p>
           </div>
         ) : (
-          messages.map((message) => <ChatMessage key={message.id} message={message} />)
+          messages.map((message) => (
+            <ChatMessage key={message.id} message={message} onSuggestionClick={sendMessage} />
+          ))
         )}
         <div ref={messagesEndRef} />
       </div>
