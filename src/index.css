@@ -1,23 +1,33 @@
 :root {
-  /* Colors */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
+  /* Colors - Halphonse lime green palette */
+  --color-primary: #7cb518;
+  --color-primary-hover: #6a9c15;
+  --color-primary-light: #9bd028;
+  --color-primary-muted: rgba(124, 181, 24, 0.15);
+
   --color-secondary: #6b7280;
   --color-secondary-hover: #4b5563;
+
+  /* Semantic colors */
+  --color-success: #84cc16;
+  --color-warning: #eab308;
   --color-danger: #ef4444;
   --color-danger-hover: #dc2626;
-  --color-success: #22c55e;
   --color-error: #ef4444;
+  --color-info: #38bdf8;
 
-  --color-bg: #0f172a;
-  --color-bg-secondary: #1e293b;
-  --color-bg-tertiary: #334155;
+  /* Background - Neutral dark with subtle warm tint */
+  --color-bg: #0c0d0a;
+  --color-bg-secondary: #161813;
+  --color-bg-tertiary: #22251d;
 
-  --color-text: #f1f5f9;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  /* Text - Warm whites */
+  --color-text: #f5f5f0;
+  --color-text-secondary: #b8b8a8;
+  --color-text-muted: #78786a;
 
-  --color-border: #334155;
+  /* Border - Subtle olive tint */
+  --color-border: #3a3d32;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -49,6 +59,31 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Scrollbar - Discreet style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 body {
@@ -257,7 +292,7 @@ body {
 }
 
 .chat-message.user {
-  background-color: var(--color-primary);
+  background-color: #4a7a0f;
   margin-left: 20%;
 }
 
@@ -323,12 +358,12 @@ body {
 }
 
 .tool-dot-pending {
-  color: var(--color-primary);
+  color: var(--color-info);
   animation: pulse 1s infinite;
 }
 
 .tool-dot-success {
-  color: var(--color-success);
+  color: var(--color-primary-light);
 }
 
 .tool-dot-error {
