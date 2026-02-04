@@ -24,19 +24,16 @@ export interface ApiConfig {
 }
 
 export function getApiConfig(): ApiConfig {
+  // Both dev (Vite proxy) and prod (Nginx proxy) use relative URLs
+  // Only use absolute URL if explicitly set in VITE_HALAPI_URL
   return {
-    apiUrl: import.meta.env.DEV ? '' : getEnvVar('VITE_HALAPI_URL'),
+    apiUrl: getEnvVar('VITE_HALAPI_URL'),
     apiToken: getEnvVar('VITE_HALAPI_TOKEN'),
   }
 }
 
 export function isConfigured(): boolean {
+  // Only token is required - URL can be empty (uses proxy)
   const token = getEnvVar('VITE_HALAPI_TOKEN')
-  // In development, apiUrl can be empty (uses proxy), so only check token
-  // In production, both apiUrl and apiToken are required
-  if (import.meta.env.DEV) {
-    return Boolean(token)
-  }
-  const url = getEnvVar('VITE_HALAPI_URL')
-  return Boolean(url && token)
+  return Boolean(token)
 }
