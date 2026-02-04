@@ -2,6 +2,7 @@
 node_modules/
 .pnp/
 .pnp.js
+.agentsea/
 
 # Build outputs
 dist/
