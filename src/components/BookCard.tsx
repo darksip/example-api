@@ -16,8 +16,8 @@ export function BookCard({ book }: BookCardProps) {
         {book.description && <p className="artifact-description">{book.description}</p>}
         {book.subjects && book.subjects.length > 0 && (
           <div className="artifact-tags">
-            {book.subjects.map((subject, i) => (
-              <span key={i} className="artifact-tag">
+            {book.subjects.map((subject) => (
+              <span key={subject} className="artifact-tag">
                 {subject}
               </span>
             ))}

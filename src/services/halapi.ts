@@ -22,46 +22,75 @@ interface ChatStreamResult {
   messageId: string | null
 }
 
+class ApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+function getAuthHeaders(): HeadersInit {
+  const { apiToken } = getApiConfig()
+  if (!apiToken) {
+    throw new ApiError('API token not configured. Set VITE_HALAPI_TOKEN in .env file.')
+  }
+  return {
+    Authorization: `Bearer ${apiToken}`,
+  }
+}
+
+function getApiUrl(path: string): string {
+  const { apiUrl } = getApiConfig()
+  return `${apiUrl}${path}`
+}
+
+async function handleErrorResponse(response: Response, context: string): Promise<never> {
+  let errorMessage = `${context}: HTTP ${response.status}`
+  try {
+    const errorData = await response.json()
+    if (errorData.error?.message) {
+      errorMessage = `${context}: ${errorData.error.message}`
+    }
+  } catch {
+    // Keep default error message if JSON parsing fails
+  }
+  throw new ApiError(errorMessage, response.status)
+}
+
 export async function* chatStream(
   options: ChatStreamOptions
 ): AsyncGenerator<SSEEvent, ChatStreamResult, undefined> {
-  const { apiUrl, apiToken } = getApiConfig()
+  const headers = getAuthHeaders()
+  const url = getApiUrl('/api/halap/chat/stream')
 
-  if (!apiToken) {
-    throw new Error('API not configured. Please set token in Settings.')
-  }
-
-  const fullUrl = `${apiUrl}/api/halap/chat/stream`
-  console.log('[halapi] chatStream URL:', fullUrl)
-
-  const response = await fetch(fullUrl, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiToken}`,
+      ...headers,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       query: options.query,
       conversationId: options.conversationId,
-      externalUserId: options.externalUserId || 'demo-user',
+      externalUserId: options.externalUserId ?? 'demo-user',
       metadata: options.metadata,
     }),
     signal: options.signal,
   })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error?.message || `HTTP error ${response.status}`)
+    await handleErrorResponse(response, 'Chat stream failed')
   }
 
   const conversationId = response.headers.get('X-Conversation-Id')
   const messageId = response.headers.get('X-Message-Id')
 
-  console.log('[halapi] chatStream response headers:', { conversationId, messageId })
-
   const reader = response.body?.getReader()
   if (!reader) {
-    throw new Error('Response body is not readable')
+    throw new ApiError('Response body is not readable')
   }
 
   const decoder = new TextDecoder()
@@ -74,20 +103,15 @@ export async function* chatStream(
 
       buffer += decoder.decode(value, { stream: true })
       const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
+      buffer = lines.pop() ?? ''
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           try {
             const event = JSON.parse(line.slice(6)) as SSEEvent
-            console.log(
-              '[halapi] SSE event received:',
-              event.type,
-              event.type === 'text-delta' ? '(delta)' : JSON.stringify(event.data)
-            )
             yield event
           } catch {
-            // Skip malformed JSON lines
+            console.warn('[halapi] Failed to parse SSE event:', line)
           }
         }
       }
@@ -101,96 +125,55 @@ export async function* chatStream(
 
 export async function getConversations(
   externalUserId?: string,
-  limit: number = 20
+  limit = 20
 ): Promise<ConversationsListResponse> {
-  const { apiUrl, apiToken } = getApiConfig()
-
-  if (!apiToken) {
-    throw new Error('API not configured. Please set token in Settings.')
-  }
-
+  const headers = getAuthHeaders()
   const params = new URLSearchParams({ limit: String(limit) })
   if (externalUserId) {
     params.set('externalUserId', externalUserId)
   }
 
-  const response = await fetch(`${apiUrl}/api/halap/conversations?${params}`, {
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-    },
-  })
+  const response = await fetch(getApiUrl(`/api/halap/conversations?${params}`), { headers })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error?.message || `HTTP error ${response.status}`)
+    await handleErrorResponse(response, 'Failed to fetch conversations')
   }
 
-  return response.json()
+  return response.json() as Promise<ConversationsListResponse>
 }
 
 export async function getConversation(conversationId: string): Promise<ConversationDetailResponse> {
-  const { apiUrl, apiToken } = getApiConfig()
+  const headers = getAuthHeaders()
 
-  if (!apiToken) {
-    throw new Error('API not configured. Please set token in Settings.')
-  }
-
-  const response = await fetch(`${apiUrl}/api/halap/conversations/${conversationId}`, {
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-    },
-  })
+  const response = await fetch(getApiUrl(`/api/halap/conversations/${conversationId}`), { headers })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error?.message || `HTTP error ${response.status}`)
+    await handleErrorResponse(response, 'Failed to fetch conversation')
   }
 
-  return response.json()
+  return response.json() as Promise<ConversationDetailResponse>
 }
 
 export async function getBookArtifacts(messageId: string): Promise<BookArtifactsResponse> {
-  const { apiUrl, apiToken } = getApiConfig()
+  const headers = getAuthHeaders()
 
-  if (!apiToken) {
-    throw new Error('API not configured. Please set token in Settings.')
-  }
-
-  const response = await fetch(`${apiUrl}/api/halap/artifacts/books/${messageId}`, {
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-    },
-  })
+  const response = await fetch(getApiUrl(`/api/halap/artifacts/books/${messageId}`), { headers })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error?.message || `HTTP error ${response.status}`)
+    await handleErrorResponse(response, 'Failed to fetch book artifacts')
   }
 
-  const data = await response.json()
-  console.log('[halapi] getBookArtifacts response:', data)
-  return data
+  return response.json() as Promise<BookArtifactsResponse>
 }
 
 export async function getMusicArtifacts(messageId: string): Promise<MusicArtifactsResponse> {
-  const { apiUrl, apiToken } = getApiConfig()
+  const headers = getAuthHeaders()
 
-  if (!apiToken) {
-    throw new Error('API not configured. Please set token in Settings.')
-  }
-
-  const response = await fetch(`${apiUrl}/api/halap/artifacts/music/${messageId}`, {
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-    },
-  })
+  const response = await fetch(getApiUrl(`/api/halap/artifacts/music/${messageId}`), { headers })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error?.message || `HTTP error ${response.status}`)
+    await handleErrorResponse(response, 'Failed to fetch music artifacts')
   }
 
-  const data = await response.json()
-  console.log('[halapi] getMusicArtifacts response:', data)
-  return data
+  return response.json() as Promise<MusicArtifactsResponse>
 }
