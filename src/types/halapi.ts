@@ -52,9 +52,23 @@ export interface MusicTrackItem {
 
 export type Music = MusicAlbum | MusicTrackItem
 
+export interface Suggestion {
+  query: string
+  label: string
+  type: 'suggestion'
+  icon?: string
+}
+
 export interface Artifacts {
   books: Book[]
   music: Music[]
+  suggestions?: Suggestion[]
+}
+
+export interface ToolCall {
+  toolCallId: string
+  toolName: string
+  status: 'pending' | 'success' | 'error'
 }
 
 export interface Message {
@@ -71,6 +85,7 @@ export interface Message {
   tokensInput?: number
   tokensOutput?: number
   executionTimeMs?: number
+  toolCalls?: ToolCall[]
 }
 
 export interface CostSummary {
@@ -142,6 +157,8 @@ export interface SSEDoneEvent {
       output: number
     }
     executionTimeMs: number
+    agentUsed?: string
+    modelUsed?: string
   }
 }
 

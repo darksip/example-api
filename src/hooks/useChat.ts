@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { chatStream, getConversation } from '../services/halapi'
-import type { Artifacts, Message } from '../types/halapi'
+import type { Artifacts, Message, ToolCall } from '../types/halapi'
 
 interface UseChatOptions {
   initialConversationId?: string
@@ -60,6 +60,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
         let fullContent = ''
         let artifacts: Artifacts = { books: [], music: [] }
+        let toolCalls: ToolCall[] = []
         let newConversationId = conversationId
         let finalMessageId: string | null = null
 
@@ -75,6 +76,31 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
               fullContent += event.data.delta
               setMessages((prev) =>
                 prev.map((m) => (m.id === assistantId ? { ...m, content: fullContent } : m))
+              )
+              break
+
+            case 'tool-call':
+              toolCalls = [
+                ...toolCalls,
+                {
+                  toolCallId: event.data.toolCallId,
+                  toolName: event.data.toolName,
+                  status: 'pending',
+                },
+              ]
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, toolCalls: [...toolCalls] } : m))
+              )
+              break
+
+            case 'tool-result':
+              toolCalls = toolCalls.map((tc) =>
+                tc.toolCallId === event.data.toolCallId
+                  ? { ...tc, status: event.data.success ? 'success' : 'error' }
+                  : tc
+              )
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, toolCalls: [...toolCalls] } : m))
               )
               break
 
@@ -95,10 +121,13 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
                         conversationId: newConversationId || m.conversationId,
                         content: fullContent,
                         artifacts,
+                        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
                         isStreaming: false,
                         tokensInput: event.data.totalTokens.input,
                         tokensOutput: event.data.totalTokens.output,
                         executionTimeMs: event.data.executionTimeMs,
+                        agentUsed: event.data.agentUsed,
+                        modelUsed: event.data.modelUsed,
                       }
                     : m
                 )
@@ -109,7 +138,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
               break
 
             case 'error':
-              throw new Error(event.data.message)
+              throw new Error(event.data.message || 'Unknown error from server')
           }
         }
 
@@ -125,7 +154,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
-                ? { ...m, isStreaming: false, content: m.content + ' [stopped]' }
+                ? { ...m, isStreaming: false, content: `${m.content} [stopped]` }
                 : m
             )
           )
