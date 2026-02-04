@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (delete package-lock to fix rollup native module issue on Alpine)
+RUN rm -f package-lock.json && npm install
 
 # Copy source code
 COPY . .
