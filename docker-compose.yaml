@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    # Or use pre-built image:
+    # image: ghcr.io/darksip/example-api:main
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_HALAPI_PROXY_TARGET=${VITE_HALAPI_PROXY_TARGET:-https://haldev.cybermeet.fr}
+      - VITE_HALAPI_TOKEN=${VITE_HALAPI_TOKEN:-hap_sk_live_YOUR_TOKEN_HERE}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
