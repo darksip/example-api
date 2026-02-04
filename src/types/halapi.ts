@@ -17,11 +17,20 @@ export interface MusicTrack {
 
 export interface MusicAlbum {
   type: 'album'
-  title: string
-  artist: string
+  cb?: string
+  // Title can come from different fields
+  title?: string
+  album?: string
+  // Artist can come from different fields
+  artist?: string
+  artist_name?: string
+  artiste?: string
   year?: number
   label?: string
+  street_date?: string
   coverUrl?: string
+  imageUrl?: string
+  albumImageUrl?: string
   tracks?: MusicTrack[]
   genres?: string[]
 }

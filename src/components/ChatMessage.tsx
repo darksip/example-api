@@ -6,9 +6,13 @@ import { MusicCard } from './MusicCard'
 
 function getMusicKey(item: Music, index: number): string {
   if (item.type === 'album') {
-    return `album-${item.title}-${item.artist}`
+    const title = item.album ?? item.title ?? index
+    const artist = item.artist_name ?? item.artiste ?? item.artist ?? ''
+    return `album-${title}-${artist}`
   }
-  return item.cb_track_id ?? `track-${item.title}-${item.artist}-${index}`
+  const title = item.track ?? item.title
+  const artist = item.artist_name ?? item.artiste ?? item.artist
+  return item.cb_track_id ?? item.cb ?? `track-${title}-${artist}-${index}`
 }
 
 interface ChatMessageProps {

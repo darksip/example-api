@@ -15,14 +15,19 @@ function isAlbum(music: Music): music is MusicAlbum {
 }
 
 function AlbumCard({ album }: { album: MusicAlbum }) {
+  const coverUrl = album.imageUrl ?? album.albumImageUrl ?? album.coverUrl
+  const title = album.album ?? album.title ?? 'Unknown Album'
+  const artist = album.artist_name ?? album.artiste ?? album.artist ?? 'Unknown Artist'
+  const year = album.street_date?.substring(0, 4) ?? album.year
+
   return (
     <div className="artifact-card music-card">
-      {album.coverUrl && <img src={album.coverUrl} alt={album.title} className="artifact-cover" />}
+      {coverUrl && <img src={coverUrl} alt={title} className="artifact-cover" />}
       <div className="artifact-info">
         <span className="artifact-type-badge">Album</span>
-        <strong className="artifact-title">{album.title}</strong>
-        <span className="artifact-author">{album.artist}</span>
-        {album.year && <span className="artifact-year">({album.year})</span>}
+        <strong className="artifact-title">{title}</strong>
+        <span className="artifact-author">{artist}</span>
+        {year && <span className="artifact-year">({year})</span>}
         {album.label && <span className="artifact-label">Label: {album.label}</span>}
 
         {album.tracks && album.tracks.length > 0 && (
