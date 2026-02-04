@@ -1,4 +1,5 @@
 import { type KeyboardEvent, useCallback, useState } from 'react'
+import { Send, Square } from 'lucide-react'
 
 interface ChatInputProps {
   onSend: (message: string) => void
@@ -38,22 +39,21 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled = false }: Cha
         disabled={isStreaming || disabled}
         rows={3}
       />
-      <div className="chat-input-actions">
-        {isStreaming ? (
-          <button className="btn btn-danger" onClick={onStop} type="button">
-            Stop
-          </button>
-        ) : (
-          <button
-            className="btn btn-primary"
-            onClick={handleSend}
-            disabled={!input.trim() || disabled}
-            type="button"
-          >
-            Send
-          </button>
-        )}
-      </div>
+      {isStreaming ? (
+        <button className="btn-icon btn-icon-danger" onClick={onStop} type="button" title="Stop">
+          <Square size={20} />
+        </button>
+      ) : (
+        <button
+          className="btn-icon btn-icon-primary"
+          onClick={handleSend}
+          disabled={!input.trim() || disabled}
+          type="button"
+          title="Send"
+        >
+          <Send size={20} />
+        </button>
+      )}
     </div>
   )
 }
