@@ -4,8 +4,10 @@ set -e
 # Default backend URL
 HALAPI_BACKEND_URL="${VITE_HALAPI_URL:-https://haldev.cybermeet.fr}"
 
-# Generate nginx config with backend URL substitution
-envsubst '${HALAPI_BACKEND_URL}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+# Generate nginx config with backend URL substitution using sed
+# This avoids envsubst replacing nginx variables like $proxy_host
+sed "s|\${HALAPI_BACKEND_URL}|${HALAPI_BACKEND_URL}|g" \
+    /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Generate runtime config for frontend (only token needed, URL uses proxy)
 cat > /usr/share/nginx/html/config.js << EOF
