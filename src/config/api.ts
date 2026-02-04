@@ -18,11 +18,6 @@ function getEnvVar(name: string): string {
   return import.meta.env[name] || ''
 }
 
-// In development, use empty string so requests go to /api/halap/* which is proxied by Vite
-// In production, use the configured environment variable
-const API_URL = import.meta.env.DEV ? '' : getEnvVar('VITE_HALAPI_URL')
-const API_TOKEN = getEnvVar('VITE_HALAPI_TOKEN')
-
 export interface ApiConfig {
   apiUrl: string
   apiToken: string
