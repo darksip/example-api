@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { chatStream, getConversation } from '../services/halapi'
 import type { Artifacts, Message, ToolCall } from '../types/halapi'
+import { generateUUID } from '../utils/uuid'
 
 interface UseChatOptions {
   initialConversationId?: string
@@ -34,7 +35,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
 
       // Add user message
       const userMessage: Message = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         conversationId: conversationId || '',
         role: 'user',
         content: query,
@@ -42,7 +43,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       }
 
       // Add placeholder for assistant response
-      const assistantId = crypto.randomUUID()
+      const assistantId = generateUUID()
       const assistantMessage: Message = {
         id: assistantId,
         conversationId: conversationId || '',
