@@ -1,8 +1,6 @@
 services:
   app:
-    build: .
-    # Or use pre-built image:
-    # image: ghcr.io/darksip/example-api:main
+    image: ghcr.io/darksip/example-api:main
     ports:
       - "8080:80"
     environment:
