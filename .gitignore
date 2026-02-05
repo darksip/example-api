@@ -6,10 +6,15 @@ node_modules/
 
 # Build outputs
 dist/
+dist-server/
 build/
 out/
 .next/
 .nuxt/
+
+# SQLite database
+data/
+*.db
 
 # Environment files
 .env

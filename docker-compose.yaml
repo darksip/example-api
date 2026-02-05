@@ -2,14 +2,16 @@ services:
   app:
     image: ghcr.io/darksip/example-api:main
     ports:
-      - "8080:80"
-    environment:
-      - VITE_HALAPI_URL=${VITE_HALAPI_URL:-https://haldev.cybermeet.fr}
-      - VITE_HALAPI_TOKEN=${VITE_HALAPI_TOKEN:-}
+      - "8080:3333"
+    volumes:
+      - halapi-data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3333/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
+
+volumes:
+  halapi-data:

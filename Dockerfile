@@ -3,33 +3,53 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies for better-sqlite3
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (delete package-lock to fix rollup native module issue on Alpine)
-RUN rm -f package-lock.json && npm install
+# Install dependencies
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application
+# Build client and server
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM node:20-alpine
 
-# Copy nginx config as template (will be processed by entrypoint)
-COPY nginx.conf /etc/nginx/conf.d/default.conf.template
+WORKDIR /app
+
+# Install runtime dependencies for better-sqlite3
+RUN apk add --no-cache python3 make g++
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev
 
 # Copy built assets from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/dist-server ./dist-server
 
-# Copy entrypoint script for runtime config injection
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Create data directory for SQLite
+RUN mkdir -p /app/data
 
-# Expose port 80
-EXPOSE 80
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3333
+ENV DB_PATH=/app/data/tokens.db
 
-# Use entrypoint to inject runtime config
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Expose port
+EXPOSE 3333
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
+  CMD wget -q --spider http://localhost:3333/health || exit 1
+
+# Run the server
+CMD ["node", "dist-server/index.js"]
