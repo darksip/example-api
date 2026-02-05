@@ -1,9 +1,9 @@
-import { Settings, User } from 'lucide-react'
+import { Book, Settings, User } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { VirtualUser } from '../config/api'
 
 /** Available pages in the application */
-export type Page = 'chat' | 'conversations' | 'settings'
+export type Page = 'chat' | 'conversations' | 'presentations' | 'settings'
 
 interface LayoutProps {
   /** Content to render in the main area */
@@ -50,6 +50,14 @@ export function Layout({
             type="button"
           >
             Conversations
+          </button>
+          <button
+            className={`nav-item ${currentPage === 'presentations' ? 'active' : ''}`}
+            onClick={() => onNavigate('presentations')}
+            type="button"
+          >
+            <Book size={16} />
+            Books
           </button>
           <button
             className={`nav-item ${currentPage === 'settings' ? 'active' : ''}`}

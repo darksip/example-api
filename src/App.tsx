@@ -20,6 +20,7 @@ import {
   setCurrentUser as setCurrentUserStorage,
   type VirtualUser,
 } from './config/api'
+import { BookPresentationsPage } from './pages/BookPresentationsPage'
 import { ChatPage } from './pages/ChatPage'
 import { ConversationsPage } from './pages/ConversationsPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -168,6 +169,8 @@ function App() {
         return <ChatPage conversationId={selectedConversationId} currentUser={currentUser} onNewChat={handleNewChat} />
       case 'conversations':
         return <ConversationsPage onSelectConversation={handleSelectConversation} currentUser={currentUser} />
+      case 'presentations':
+        return <BookPresentationsPage />
       case 'settings':
         return <SettingsPage onUsersChange={refreshVirtualUsers} />
     }
