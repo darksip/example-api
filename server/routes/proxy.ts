@@ -38,10 +38,13 @@ proxy.all('/*', async (c) => {
   headers.set('Authorization', `Bearer ${token}`)
   headers.set('Host', new URL(apiUrl).host)
 
-  console.log(`[proxy] ${c.req.method} ${path} -> ${targetUrl}`)
+  // Include query string in the target URL
+  const queryString = new URL(c.req.url).search
+  const fullTargetUrl = `${targetUrl}${queryString}`
+  console.log(`[proxy] ${c.req.method} ${path}${queryString} -> ${fullTargetUrl}`)
 
   try {
-    const response = await fetch(targetUrl, {
+    const response = await fetch(fullTargetUrl, {
       method: c.req.method,
       headers,
       body: c.req.method !== 'GET' && c.req.method !== 'HEAD' ? c.req.raw.body : undefined,
@@ -73,9 +76,20 @@ proxy.all('/*', async (c) => {
       })
     }
 
-    // For non-streaming responses, buffer the entire body to avoid truncation
-    const body = await response.text()
-    return new Response(body, {
+    // For non-streaming responses, clone and consume the response fully
+    // Using clone() to ensure we get the complete body
+    const clonedResponse = response.clone()
+    const bodyText = await clonedResponse.text()
+
+    // Debug log for JSON responses
+    if (contentType.includes('application/json')) {
+      console.log(`[proxy] JSON response: ${bodyText.length} bytes, complete: ${bodyText.endsWith('}') || bodyText.endsWith(']')}`)
+    }
+
+    // Set explicit content-length to ensure full transmission
+    responseHeaders.set('Content-Length', String(Buffer.byteLength(bodyText, 'utf8')))
+
+    return new Response(bodyText, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
