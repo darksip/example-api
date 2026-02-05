@@ -19,9 +19,10 @@ Application React de démonstration pour l'API Halapi - un assistant conversatio
 - **Gestion des tokens via UI** : enregistrez votre token API depuis la page Settings
 - **Stockage sécurisé** : tokens stockés côté serveur en SQLite, seul un hash est gardé côté client
 - **Proxy API** : les requêtes passent par un serveur Hono qui injecte le vrai token
+- **Utilisateurs virtuels** : simulation multi-utilisateurs avec `externalUserId` pour tester des scénarios multi-tenants
 - **Indicateurs d'outils** affichant le statut des appels d'outils en temps réel
 - **Rendu Markdown** avec support GitHub Flavored Markdown (GFM)
-- **Historique des conversations** avec possibilité de reprendre une discussion
+- **Historique des conversations** filtré par utilisateur avec possibilité de reprendre une discussion
 - **Métadonnées détaillées** : agent utilisé, modèle, temps d'exécution, tokens consommés
 
 ## Architecture
@@ -66,6 +67,17 @@ L'architecture utilise un système de proxy pour sécuriser les tokens API :
    - Identifie l'utilisateur via le hash
    - Récupère le vrai token depuis SQLite
    - Injecte le token dans les requêtes vers l'API Halapi
+
+### Gestion des utilisateurs virtuels
+
+Les utilisateurs virtuels sont stockés **uniquement côté client** (localStorage) :
+
+- `halapi_virtual_users` : Liste des utilisateurs créés
+- `halapi_current_user` : ID de l'utilisateur sélectionné
+
+L'`externalUserId` de l'utilisateur courant est automatiquement inclus dans :
+- Les requêtes de chat (pour créer des conversations liées à cet utilisateur)
+- Les requêtes de liste des conversations (pour filtrer par utilisateur)
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -133,7 +145,23 @@ Cette commande lance simultanément :
 
 ### Premier lancement
 
-Lors de la première visite, vous serez automatiquement redirigé vers la page **Settings** pour enregistrer votre token API Halapi. Une fois le token enregistré, vous pourrez accéder au chat.
+Lors de la première visite, vous serez automatiquement redirigé vers la page **Settings** pour :
+
+1. **Enregistrer votre token API** Halapi
+2. **Créer au moins un utilisateur virtuel** (obligatoire)
+
+Une fois configuré, vous pourrez accéder au chat. L'utilisateur courant est sélectionnable dans le header.
+
+### Utilisateurs virtuels
+
+Les utilisateurs virtuels permettent de simuler des scénarios multi-tenants :
+
+- Chaque utilisateur a son propre historique de conversations
+- L'`externalUserId` est envoyé à l'API Halapi pour isoler les données
+- Changez d'utilisateur via le sélecteur dans le header
+- La dernière conversation de l'utilisateur est automatiquement chargée
+
+**Note** : L'unicité de l'`externalUserId` au sein de votre organisation est de votre responsabilité.
 
 ### Autres commandes
 
@@ -262,17 +290,17 @@ example-halapi/
 │   │   ├── ChatInput.tsx       # Zone de saisie du chat
 │   │   ├── ChatMessage.tsx     # Message avec markdown et artifacts
 │   │   ├── ConversationItem.tsx# Élément de liste des conversations
-│   │   ├── Layout.tsx          # Layout principal avec navigation
+│   │   ├── Layout.tsx          # Layout avec navigation + sélecteur utilisateur
 │   │   └── MusicCard.tsx       # Carte album ou piste musicale
 │   ├── config/
-│   │   └── api.ts              # Configuration API
+│   │   └── api.ts              # Configuration API + gestion utilisateurs virtuels
 │   ├── hooks/
 │   │   ├── useChat.ts          # Gestion du chat avec streaming
 │   │   └── useConversations.ts # Récupération des conversations
 │   ├── pages/
 │   │   ├── ChatPage.tsx        # Page principale de chat
-│   │   ├── ConversationsPage.tsx # Liste des conversations passées
-│   │   └── SettingsPage.tsx    # Enregistrement du token API
+│   │   ├── ConversationsPage.tsx # Liste des conversations (filtrée par utilisateur)
+│   │   └── SettingsPage.tsx    # Token + gestion des utilisateurs virtuels
 │   ├── App.tsx                 # Composant racine avec routing
 │   ├── main.tsx                # Point d'entrée React
 │   └── index.css               # Styles globaux (thème sombre)
