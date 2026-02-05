@@ -1,0 +1,3 @@
+[submodule "halapi-js"]
+	path = halapi-js
+	url = https://github.com/darksip/halapi-js.git
