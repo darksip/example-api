@@ -1,7 +1,8 @@
+import { User } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { ChatInput } from '../components/ChatInput'
 import { ChatMessage } from '../components/ChatMessage'
-import { isConfigured } from '../config/api'
+import { isConfigured, type VirtualUser } from '../config/api'
 import { useChat } from '../hooks/useChat'
 
 /**
@@ -14,6 +15,10 @@ interface ChatPageProps {
    * If undefined, starts a new conversation.
    */
   conversationId?: string
+  /**
+   * Current virtual user (passed from App)
+   */
+  currentUser: VirtualUser | null
 }
 
 /**
@@ -41,17 +46,26 @@ interface ChatPageProps {
  * // Continue existing conversation
  * <ChatPage conversationId="conv_123abc" />
  */
-export function ChatPage({ conversationId }: ChatPageProps) {
+export function ChatPage({ conversationId, currentUser }: ChatPageProps) {
   const { messages, isStreaming, error, sendMessage, stopStreaming, loadConversation, clearChat } =
     useChat({ initialConversationId: conversationId })
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const previousUserIdRef = useRef<string | null | undefined>(undefined)
   const configured = isConfigured()
 
+  // Load conversation when conversationId changes, or clear chat when switching users
   useEffect(() => {
+    const currentUserId = currentUser?.id ?? null
+    const userChanged = previousUserIdRef.current !== undefined && previousUserIdRef.current !== currentUserId
+    previousUserIdRef.current = currentUserId
+
     if (conversationId) {
       loadConversation(conversationId)
+    } else if (userChanged || messages.length > 0) {
+      // Clear chat when user changed or when there are leftover messages
+      clearChat()
     }
-  }, [conversationId, loadConversation])
+  }, [conversationId, currentUser?.id, loadConversation, clearChat, messages.length])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every message change
   useEffect(() => {
@@ -73,11 +87,19 @@ export function ChatPage({ conversationId }: ChatPageProps) {
     <div className="chat-page">
       <div className="chat-header">
         <h2>Chat</h2>
-        {messages.length > 0 && (
-          <button className="btn btn-secondary" onClick={clearChat} type="button">
-            New Chat
-          </button>
-        )}
+        <div className="chat-header-actions">
+          {currentUser && (
+            <span className="current-user-badge">
+              <User size={14} />
+              {currentUser.name}
+            </span>
+          )}
+          {messages.length > 0 && (
+            <button className="btn btn-secondary" onClick={clearChat} type="button">
+              New Chat
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <div className="error-banner">{error}</div>}

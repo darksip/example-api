@@ -12,7 +12,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Layout, type Page } from './components/Layout'
-import { isConfigured } from './config/api'
+import {
+  getCurrentUser,
+  getVirtualUsers,
+  halapiClient,
+  isConfigured,
+  setCurrentUser as setCurrentUserStorage,
+  type VirtualUser,
+} from './config/api'
 import { ChatPage } from './pages/ChatPage'
 import { ConversationsPage } from './pages/ConversationsPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -39,19 +46,75 @@ import { SettingsPage } from './pages/SettingsPage'
  * )
  */
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>(() =>
-    isConfigured() ? 'chat' : 'settings'
-  )
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    if (!isConfigured()) return 'settings'
+    // Also require at least one virtual user
+    if (getVirtualUsers().length === 0) return 'settings'
+    return 'chat'
+  })
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>(
     undefined
   )
 
-  // Redirect to settings if not configured
+  // Virtual users state
+  const [virtualUsers, setVirtualUsers] = useState<VirtualUser[]>([])
+  const [currentUser, setCurrentUser] = useState<VirtualUser | null>(null)
+
+  // Load virtual users and current user on mount
   useEffect(() => {
-    if (!isConfigured() && currentPage !== 'settings') {
+    if (isConfigured()) {
+      setVirtualUsers(getVirtualUsers())
+      setCurrentUser(getCurrentUser())
+    }
+  }, [])
+
+  // Redirect to settings if not configured or no virtual users
+  useEffect(() => {
+    const needsSetup = !isConfigured() || virtualUsers.length === 0
+    if (needsSetup && currentPage !== 'settings') {
       setCurrentPage('settings')
     }
-  }, [currentPage])
+  }, [currentPage, virtualUsers.length])
+
+  /**
+   * Handles changing the current virtual user.
+   * Fetches the most recent conversation for the new user and navigates to it.
+   */
+  const handleUserChange = useCallback(async (userId: string | null) => {
+    // Update storage and state
+    setCurrentUserStorage(userId)
+    const newUser = userId ? virtualUsers.find((u) => u.id === userId) || null : null
+    setCurrentUser(newUser)
+
+    // Fetch the most recent conversation for this user
+    if (isConfigured()) {
+      try {
+        const response = await halapiClient.getConversations(userId || undefined, 1)
+        const firstConversation = response.conversations[0]
+        if (firstConversation) {
+          // Load the most recent conversation
+          setSelectedConversationId(firstConversation.id)
+          setCurrentPage('chat')
+        } else {
+          // No conversations for this user, start fresh
+          setSelectedConversationId(undefined)
+          setCurrentPage('chat')
+        }
+      } catch {
+        // On error, just go to chat without a conversation
+        setSelectedConversationId(undefined)
+        setCurrentPage('chat')
+      }
+    }
+  }, [virtualUsers])
+
+  /**
+   * Refreshes the virtual users list (called after adding/removing users in Settings)
+   */
+  const refreshVirtualUsers = useCallback(() => {
+    setVirtualUsers(getVirtualUsers())
+    setCurrentUser(getCurrentUser())
+  }, [])
 
   /**
    * Handles navigation between pages.
@@ -63,15 +126,16 @@ function App() {
    * @param page - The target page to navigate to ('chat', 'conversations', or 'settings')
    */
   const handleNavigate = useCallback((page: Page) => {
-    // Don't allow navigation away from settings if not configured
-    if (page !== 'settings' && !isConfigured()) {
+    // Don't allow navigation away from settings if not configured or no users
+    const needsSetup = !isConfigured() || virtualUsers.length === 0
+    if (page !== 'settings' && needsSetup) {
       return
     }
     setCurrentPage(page)
     if (page !== 'chat') {
       setSelectedConversationId(undefined)
     }
-  }, [])
+  }, [virtualUsers.length])
 
   /**
    * Handles conversation selection from the ConversationsPage.
@@ -94,16 +158,22 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'chat':
-        return <ChatPage conversationId={selectedConversationId} />
+        return <ChatPage conversationId={selectedConversationId} currentUser={currentUser} />
       case 'conversations':
-        return <ConversationsPage onSelectConversation={handleSelectConversation} />
+        return <ConversationsPage onSelectConversation={handleSelectConversation} currentUser={currentUser} />
       case 'settings':
-        return <SettingsPage />
+        return <SettingsPage onUsersChange={refreshVirtualUsers} />
     }
   }
 
   return (
-    <Layout currentPage={currentPage} onNavigate={handleNavigate}>
+    <Layout
+      currentPage={currentPage}
+      onNavigate={handleNavigate}
+      currentUser={currentUser}
+      virtualUsers={virtualUsers}
+      onUserChange={handleUserChange}
+    >
       {renderPage()}
     </Layout>
   )

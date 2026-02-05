@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { halapiClient, isConfigured } from '../config/api'
+import { getCurrentUser, halapiClient, isConfigured } from '../config/api'
 import type { Conversation } from '../../halapi-js/src'
 
 /**
@@ -102,8 +102,10 @@ export function useConversations(): UseConversationsReturn {
     setError(null) // Clear any previous error
 
     try {
-      // Fetch all conversations for the authenticated user
-      const response = await halapiClient.getConversations()
+      // Get current virtual user for filtering
+      const currentUser = getCurrentUser()
+      // Fetch conversations, filtered by externalUserId if a user is selected
+      const response = await halapiClient.getConversations(currentUser?.id, 50)
       setConversations(response.conversations)
     } catch (err) {
       // Handle fetch errors (network issues, auth failures, etc.)

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { halapiClient } from '../config/api'
+import { getCurrentUser, halapiClient } from '../config/api'
 import type { Artifacts, Message, ToolCall } from '../../halapi-js/src'
 import { generateUUID } from '../../halapi-js/src'
 
@@ -207,11 +207,15 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         let newConversationId = conversationId // Updated by done event for new conversations
         let finalMessageId: string | null = null // Server-assigned message ID from done event
 
+        // Get current virtual user for externalUserId
+        const currentUser = getCurrentUser()
+
         // Initiate the streaming request.
         // The signal allows us to abort the request when stopStreaming() is called.
         const stream = halapiClient.chatStream({
           query,
           conversationId: conversationId || undefined,
+          externalUserId: currentUser?.id,
           signal: abortControllerRef.current.signal,
         })
 

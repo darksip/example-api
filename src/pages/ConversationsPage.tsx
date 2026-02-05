@@ -1,5 +1,6 @@
+import { Filter } from 'lucide-react'
 import { ConversationItem } from '../components/ConversationItem'
-import { isConfigured } from '../config/api'
+import { isConfigured, type VirtualUser } from '../config/api'
 import { useConversations } from '../hooks/useConversations'
 
 /**
@@ -12,6 +13,10 @@ interface ConversationsPageProps {
    * @param id - The unique identifier of the selected conversation
    */
   onSelectConversation: (id: string) => void
+  /**
+   * Current virtual user (passed from App)
+   */
+  currentUser: VirtualUser | null
 }
 
 /**
@@ -34,7 +39,7 @@ interface ConversationsPageProps {
  *   onSelectConversation={(id) => navigateToChat(id)}
  * />
  */
-export function ConversationsPage({ onSelectConversation }: ConversationsPageProps) {
+export function ConversationsPage({ onSelectConversation, currentUser }: ConversationsPageProps) {
   const { conversations, isLoading, error, refresh } = useConversations()
   const configured = isConfigured()
 
@@ -52,7 +57,15 @@ export function ConversationsPage({ onSelectConversation }: ConversationsPagePro
   return (
     <div className="conversations-page">
       <div className="page-header">
-        <h2>Conversations</h2>
+        <div className="page-header-title">
+          <h2>Conversations</h2>
+          {currentUser && (
+            <span className="filter-badge">
+              <Filter size={12} />
+              {currentUser.name}
+            </span>
+          )}
+        </div>
         <button className="btn btn-secondary" onClick={refresh} disabled={isLoading} type="button">
           {isLoading ? 'Loading...' : 'Refresh'}
         </button>
