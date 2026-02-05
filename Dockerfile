@@ -36,8 +36,8 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/dist-server ./dist-server
 
-# Create data directory for SQLite
-RUN mkdir -p /app/data
+# Create data directory for SQLite and set ownership to non-root user
+RUN mkdir -p /app/data && chown -R node:node /app
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -50,6 +50,9 @@ EXPOSE 3333
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=10s \
   CMD wget -q --spider http://localhost:3333/health || exit 1
+
+# Switch to non-root user
+USER node
 
 # Run the server
 CMD ["node", "dist-server/index.js"]
