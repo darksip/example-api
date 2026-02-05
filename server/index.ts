@@ -16,7 +16,7 @@ import { tokens } from './routes/tokens'
 import { proxy } from './routes/proxy'
 
 const isDev = process.env.NODE_ENV !== 'production'
-const VITE_DEV_SERVER = 'http://localhost:5173'
+const VITE_DEV_SERVER = 'http://localhost:5174'
 
 const app = new Hono()
 
