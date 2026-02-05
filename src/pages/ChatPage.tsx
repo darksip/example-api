@@ -19,6 +19,10 @@ interface ChatPageProps {
    * Current virtual user (passed from App)
    */
   currentUser: VirtualUser | null
+  /**
+   * Callback when user starts a new chat (clears conversation selection in App)
+   */
+  onNewChat?: () => void
 }
 
 /**
@@ -46,7 +50,7 @@ interface ChatPageProps {
  * // Continue existing conversation
  * <ChatPage conversationId="conv_123abc" />
  */
-export function ChatPage({ conversationId, currentUser }: ChatPageProps) {
+export function ChatPage({ conversationId, currentUser, onNewChat }: ChatPageProps) {
   const { messages, isStreaming, error, sendMessage, stopStreaming, loadConversation, clearChat } =
     useChat({ initialConversationId: conversationId })
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -61,11 +65,11 @@ export function ChatPage({ conversationId, currentUser }: ChatPageProps) {
 
     if (conversationId) {
       loadConversation(conversationId)
-    } else if (userChanged || messages.length > 0) {
-      // Clear chat when user changed or when there are leftover messages
+    } else if (userChanged) {
+      // Clear chat when user changed
       clearChat()
     }
-  }, [conversationId, currentUser?.id, loadConversation, clearChat, messages.length])
+  }, [conversationId, currentUser?.id, loadConversation, clearChat])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every message change
   useEffect(() => {
@@ -95,7 +99,14 @@ export function ChatPage({ conversationId, currentUser }: ChatPageProps) {
             </span>
           )}
           {messages.length > 0 && (
-            <button className="btn btn-secondary" onClick={clearChat} type="button">
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                clearChat()
+                onNewChat?.()
+              }}
+              type="button"
+            >
               New Chat
             </button>
           )}

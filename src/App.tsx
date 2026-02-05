@@ -151,6 +151,13 @@ function App() {
   }, [])
 
   /**
+   * Handles starting a new chat (clears the selected conversation)
+   */
+  const handleNewChat = useCallback(() => {
+    setSelectedConversationId(undefined)
+  }, [])
+
+  /**
    * Renders the appropriate page component based on current navigation state.
    *
    * @returns The page component for the current route
@@ -158,7 +165,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'chat':
-        return <ChatPage conversationId={selectedConversationId} currentUser={currentUser} />
+        return <ChatPage conversationId={selectedConversationId} currentUser={currentUser} onNewChat={handleNewChat} />
       case 'conversations':
         return <ConversationsPage onSelectConversation={handleSelectConversation} currentUser={currentUser} />
       case 'settings':
