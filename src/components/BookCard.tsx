@@ -1,4 +1,4 @@
-import type { Book } from '../types/halapi'
+import type { Book } from '../../halapi-js/src'
 
 interface BookCardProps {
   book: Book

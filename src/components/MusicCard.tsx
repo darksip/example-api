@@ -1,4 +1,4 @@
-import type { Music, MusicAlbum, MusicTrackItem } from '../types/halapi'
+import type { Music, MusicAlbum, MusicTrackItem } from '../../halapi-js/src'
 
 interface MusicCardProps {
   music: Music

@@ -1,4 +1,4 @@
-import type { Conversation } from '../types/halapi'
+import type { Conversation } from '../../halapi-js/src'
 
 interface ConversationItemProps {
   conversation: Conversation

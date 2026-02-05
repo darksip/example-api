@@ -1,6 +1,6 @@
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import type { Message, Music, Suggestion, ToolCall } from '../types/halapi'
+import type { Message, Music, Suggestion, ToolCall } from '../../halapi-js/src'
 import { BookCard } from './BookCard'
 import { MusicCard } from './MusicCard'
 

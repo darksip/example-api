@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { isConfigured } from '../config/api'
-import { getConversations } from '../services/halapi'
-import type { Conversation } from '../types/halapi'
+import { halapiClient, isConfigured } from '../config/api'
+import type { Conversation } from '../../halapi-js/src'
 
 interface UseConversationsReturn {
   conversations: Conversation[]
@@ -25,7 +24,7 @@ export function useConversations(): UseConversationsReturn {
     setError(null)
 
     try {
-      const response = await getConversations()
+      const response = await halapiClient.getConversations()
       setConversations(response.conversations)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load conversations'

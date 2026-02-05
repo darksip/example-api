@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
-import { chatStream, getConversation } from '../services/halapi'
-import type { Artifacts, Message, ToolCall } from '../types/halapi'
-import { generateUUID } from '../utils/uuid'
+import { halapiClient } from '../config/api'
+import type { Artifacts, Message, ToolCall } from '../../halapi-js/src'
+import { generateUUID } from '../../halapi-js/src'
 
 interface UseChatOptions {
   initialConversationId?: string
@@ -65,7 +65,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         let newConversationId = conversationId
         let finalMessageId: string | null = null
 
-        const stream = chatStream({
+        const stream = halapiClient.chatStream({
           query,
           conversationId: conversationId || undefined,
           signal: abortControllerRef.current.signal,
@@ -189,7 +189,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
   const loadConversation = useCallback(async (id: string) => {
     try {
       setError(null)
-      const response = await getConversation(id)
+      const response = await halapiClient.getConversation(id)
       setConversationId(id)
       setMessages(
         response.messages.map((m) => ({
