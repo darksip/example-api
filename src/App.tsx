@@ -1,18 +1,30 @@
-import { useCallback, useState } from 'react'
-import { AuthGate } from './components/AuthGate'
+import { useCallback, useEffect, useState } from 'react'
 import { Layout, type Page } from './components/Layout'
-import { useAuth } from './hooks/useAuth'
+import { isConfigured } from './config/api'
 import { ChatPage } from './pages/ChatPage'
 import { ConversationsPage } from './pages/ConversationsPage'
+import { SettingsPage } from './pages/SettingsPage'
 
 function App() {
-  const { isAuthenticated, isLoading, error, authenticate } = useAuth()
-  const [currentPage, setCurrentPage] = useState<Page>('chat')
+  const [currentPage, setCurrentPage] = useState<Page>(() =>
+    isConfigured() ? 'chat' : 'settings'
+  )
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>(
     undefined
   )
 
+  // Redirect to settings if not configured
+  useEffect(() => {
+    if (!isConfigured() && currentPage !== 'settings') {
+      setCurrentPage('settings')
+    }
+  }, [currentPage])
+
   const handleNavigate = useCallback((page: Page) => {
+    // Don't allow navigation away from settings if not configured
+    if (page !== 'settings' && !isConfigured()) {
+      return
+    }
     setCurrentPage(page)
     if (page !== 'chat') {
       setSelectedConversationId(undefined)
@@ -30,12 +42,9 @@ function App() {
         return <ChatPage conversationId={selectedConversationId} />
       case 'conversations':
         return <ConversationsPage onSelectConversation={handleSelectConversation} />
+      case 'settings':
+        return <SettingsPage />
     }
-  }
-
-  // Show auth gate if not authenticated
-  if (!isAuthenticated) {
-    return <AuthGate isLoading={isLoading} error={error} onAuthenticate={authenticate} />
   }
 
   return (

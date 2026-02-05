@@ -1,74 +1,131 @@
 /**
  * Halapi client configuration for this application
  *
- * Uses the halapi-js SDK with a custom Vite/Docker adapter
+ * Uses localStorage to store token hash and API URL.
+ * The actual token is stored server-side in SQLite.
+ * All API requests go through the local Hono proxy which injects the real token.
  */
 
-import { createHalapiClient, type ConfigProvider, type HalapiConfig } from '../../halapi-js/src'
+import { createHalapiClient, type HalapiConfig } from '../../halapi-js/src'
 
-// Runtime config is injected by Docker entrypoint into window.__ENV__
-declare global {
-  interface Window {
-    __ENV__?: {
-      VITE_HALAPI_URL?: string
-      VITE_HALAPI_TOKEN?: string
+const STORAGE_KEY = 'halapi_config'
+
+/**
+ * Configuration stored in localStorage
+ */
+export interface StoredConfig {
+  /** SHA-256 hash of the token (used to identify the token on the server) */
+  tokenHash: string
+  /** Original API URL (for display purposes) */
+  apiUrl: string
+}
+
+/**
+ * Get stored config from localStorage
+ */
+export function getStoredConfig(): StoredConfig | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as StoredConfig
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Store config in localStorage
+ */
+export function storeConfig(config: StoredConfig): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+}
+
+/**
+ * Clear stored config from localStorage
+ */
+export function clearConfig(): void {
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+/**
+ * Check if the API is configured (has a stored token hash)
+ */
+export function isConfigured(): boolean {
+  return getStoredConfig() !== null
+}
+
+/**
+ * Custom fetch that adds X-Token-Hash header to all requests
+ * This allows the Hono proxy to look up the actual token from SQLite
+ */
+function createFetchWithTokenHash(): typeof fetch {
+  return (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const config = getStoredConfig()
+    if (!config) {
+      return Promise.reject(new Error('Not configured - please register a token in Settings'))
     }
+
+    const headers = new Headers(init?.headers)
+    headers.set('X-Token-Hash', config.tokenHash)
+
+    return fetch(input, { ...init, headers })
   }
 }
 
 /**
- * Get environment variable from Docker runtime config or Vite env
+ * Proxy configuration adapter
+ * Uses empty apiUrl (relative URLs) since the Hono server proxies requests
+ * The apiToken is a placeholder - actual auth is via X-Token-Hash header
  */
-function getEnvVar(name: string): string {
-  // First check runtime config (Docker), then Vite env vars
-  if (typeof window !== 'undefined' && window.__ENV__?.[name as keyof typeof window.__ENV__]) {
-    return window.__ENV__[name as keyof typeof window.__ENV__] || ''
-  }
-  return import.meta.env[name] || ''
-}
-
-/**
- * Vite/Docker configuration adapter
- */
-const viteAdapter: ConfigProvider = (): HalapiConfig => ({
-  apiUrl: getEnvVar('VITE_HALAPI_URL'),
-  apiToken: getEnvVar('VITE_HALAPI_TOKEN'),
+const proxyAdapter = (): HalapiConfig => ({
+  apiUrl: '', // Empty = relative URLs, proxied by Hono
+  apiToken: 'via-proxy', // Placeholder - real token looked up by server
 })
 
 /**
  * Pre-configured Halapi client instance
+ * Uses custom fetch to inject X-Token-Hash header
  */
-export const halapiClient = createHalapiClient(viteAdapter)
+export const halapiClient = createHalapiClient(proxyAdapter, {
+  customFetch: createFetchWithTokenHash(),
+})
 
 /**
- * Check if the API is configured (has a token)
+ * Register a token with the server
+ * The server stores the actual token and returns its hash
  */
-export function isConfigured(): boolean {
-  const token = getEnvVar('VITE_HALAPI_TOKEN')
-  return Boolean(token)
-}
+export async function registerToken(token: string, apiUrl: string): Promise<StoredConfig> {
+  const response = await fetch('/tokens/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, apiUrl }),
+  })
 
-/**
- * Hash a string using SHA-256
- */
-async function hashString(str: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(str)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
-}
-
-/**
- * Get the SHA-256 hash of the expected token (from env)
- * Used to verify user-provided token without exposing the actual token
- */
-export async function getExpectedTokenHash(): Promise<string | null> {
-  const token = getEnvVar('VITE_HALAPI_TOKEN')
-  if (!token) {
-    return null
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Failed to register token' }))
+    throw new Error(error.error || 'Failed to register token')
   }
-  return hashString(token)
+
+  const { hash } = await response.json()
+  const config: StoredConfig = { tokenHash: hash, apiUrl }
+  storeConfig(config)
+  return config
+}
+
+/**
+ * Delete the current token from the server and clear local storage
+ */
+export async function deleteToken(): Promise<void> {
+  const config = getStoredConfig()
+  if (!config) return
+
+  try {
+    await fetch(`/tokens/${config.tokenHash}`, { method: 'DELETE' })
+  } catch {
+    // Ignore errors - clear local storage anyway
+  }
+
+  clearConfig()
 }
 
 // Re-export types that components may need
