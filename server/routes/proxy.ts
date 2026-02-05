@@ -68,8 +68,52 @@ proxy.all('/*', async (c) => {
     const isStreaming = contentType.includes('text/event-stream')
 
     if (isStreaming) {
-      // For SSE, stream the response body directly
-      return new Response(response.body, {
+      // For SSE, intercept and log events while streaming - TEMPORARY for debugging
+      const reader = response.body?.getReader()
+      if (!reader) {
+        return new Response(null, { status: 500, statusText: 'No response body' })
+      }
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          const decoder = new TextDecoder()
+          let buffer = ''
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) {
+              controller.close()
+              break
+            }
+
+            // Pass through the data
+            controller.enqueue(value)
+
+            // Also log artifacts events
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const event = JSON.parse(line.slice(6))
+                  if (event.type === 'artifacts' && event.data?.books) {
+                    console.log('[proxy] SSE artifacts event - Books:')
+                    event.data.books.forEach((book: Record<string, unknown>, i: number) => {
+                      console.log(`  [${i}] title: ${book.title}, isbn13: ${book.isbn13}, coverUrl: ${book.coverUrl}`)
+                    })
+                  }
+                } catch {
+                  // Ignore parse errors
+                }
+              }
+            }
+          }
+        },
+      })
+
+      return new Response(stream, {
         status: response.status,
         statusText: response.statusText,
         headers: responseHeaders,
@@ -81,9 +125,28 @@ proxy.all('/*', async (c) => {
     const clonedResponse = response.clone()
     const bodyText = await clonedResponse.text()
 
-    // Debug log for JSON responses
+    // Debug log for JSON responses - TEMPORARY for debugging coverUrl
     if (contentType.includes('application/json')) {
-      console.log(`[proxy] JSON response: ${bodyText.length} bytes, complete: ${bodyText.endsWith('}') || bodyText.endsWith(']')}`)
+      console.log(`[proxy] JSON response: ${bodyText.length} bytes`)
+      try {
+        const jsonData = JSON.parse(bodyText)
+        // Log books if present (from artifacts or direct response)
+        if (jsonData.books) {
+          console.log('[proxy] Books in response:')
+          jsonData.books.forEach((book: Record<string, unknown>, i: number) => {
+            console.log(`  [${i}] title: ${book.title}, isbn13: ${book.isbn13}, coverUrl: ${book.coverUrl}`)
+          })
+        }
+        // Log presentations if present
+        if (jsonData.presentations) {
+          console.log('[proxy] Presentations in response:')
+          jsonData.presentations.forEach((p: Record<string, unknown>, i: number) => {
+            console.log(`  [${i}] isbn13: ${p.isbn13}, found: ${p.found}`)
+          })
+        }
+      } catch {
+        console.log('[proxy] Could not parse JSON for logging')
+      }
     }
 
     // Set explicit content-length to ensure full transmission
