@@ -15,6 +15,7 @@ Application React de démonstration pour l'API Halapi - un assistant conversatio
 - **Chat en temps réel** avec streaming SSE (Server-Sent Events)
 - **Recommandations de livres** avec couvertures, auteurs, descriptions et sujets
 - **Recommandations musicales** avec albums, pistes, pochettes et métadonnées complètes
+- **Aperçu des livres** : cliquez sur une carte de livre pour voir sa présentation éditoriale
 - **Suggestions interactives** sous forme de boutons pour continuer la conversation
 - **Gestion des tokens via UI** : enregistrez votre token API depuis la page Settings
 - **Stockage sécurisé** : tokens stockés côté serveur en SQLite, seul un hash est gardé côté client
@@ -33,6 +34,7 @@ Le projet utilise le SDK [halapi-js](https://github.com/darksip/halapi-js) comme
 
 - Client API type-safe pour communiquer avec le backend Halapi
 - Types TypeScript pour toutes les structures de données (messages, livres, musique, etc.)
+- Méthode `getBookPresentations()` pour récupérer les présentations éditoriales par ISBN
 - Utilitaires partagés (génération UUID, etc.)
 
 ```
@@ -286,7 +288,8 @@ example-halapi/
 │   └── index.ts                # Serveur Hono (proxy + SQLite)
 ├── src/
 │   ├── components/
-│   │   ├── BookCard.tsx        # Carte de recommandation de livre
+│   │   ├── BookCard.tsx        # Carte de livre cliquable
+│   │   ├── BookPreviewModal.tsx# Modal d'aperçu avec présentation
 │   │   ├── ChatInput.tsx       # Zone de saisie du chat
 │   │   ├── ChatMessage.tsx     # Message avec markdown et artifacts
 │   │   ├── ConversationItem.tsx# Élément de liste des conversations
@@ -329,6 +332,18 @@ Les appels d'outils sont représentés par des points colorés :
 - **Bleu** (pulsant) : En cours d'exécution
 - **Vert** : Succès
 - **Rouge** : Erreur
+
+## Aperçu des livres
+
+Cliquez sur une carte de livre pour ouvrir un modal d'aperçu qui affiche :
+- La couverture du livre (si disponible via `coverUrl`)
+- Les informations de base (titre, auteur, année, ISBN)
+- La **présentation éditoriale** récupérée via l'API `POST /api/halap/books/presentations`
+- La description et les sujets du livre
+
+L'API de présentations accepte jusqu'à 100 ISBN-13 par requête et retourne pour chacun :
+- `found: true` avec le texte de présentation
+- `found: false` si le livre n'est pas trouvé
 
 ## Stack technique
 
