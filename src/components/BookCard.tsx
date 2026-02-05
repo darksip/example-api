@@ -1,9 +1,14 @@
 import type { Book } from '../../halapi-js/src'
 
 interface BookCardProps {
+  /** The book data to display */
   book: Book
 }
 
+/**
+ * Displays a book recommendation card.
+ * Shows cover image, title, author, year, ISBN, description, and subjects.
+ */
 export function BookCard({ book }: BookCardProps) {
   return (
     <div className="artifact-card book-card">

@@ -1,10 +1,19 @@
 import type { Conversation } from '../../halapi-js/src'
 
 interface ConversationItemProps {
+  /** The conversation data to display */
   conversation: Conversation
+  /** Callback when the conversation item is clicked */
   onClick: () => void
 }
 
+/**
+ * Formats a timestamp into a human-readable relative date.
+ * Shows time for today, "Yesterday", weekday name for last 7 days,
+ * or short date for older dates.
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted date string
+ */
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp)
   const now = new Date()
@@ -25,6 +34,10 @@ function formatDate(timestamp: number): string {
   }
 }
 
+/**
+ * Displays a conversation in the conversations list.
+ * Shows date, message count, and truncated conversation ID.
+ */
 export function ConversationItem({ conversation, onClick }: ConversationItemProps) {
   return (
     <button className="conversation-item" onClick={onClick} type="button">

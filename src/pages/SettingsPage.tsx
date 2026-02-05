@@ -1,10 +1,15 @@
 /**
- * Settings page for managing API configuration
+ * Settings page for managing API configuration.
  *
- * Allows users to:
- * - Register a new API token
- * - View current configuration
- * - Delete the stored token
+ * This component provides token registration and management functionality:
+ * - Register a new API token with a custom API URL
+ * - View the current stored configuration (API URL and token hash)
+ * - Delete the stored token to reset configuration
+ *
+ * The token is stored securely on the server, with only the hash
+ * kept locally to identify the user's configuration.
+ *
+ * @module SettingsPage
  */
 
 import { AlertCircle, Check, Loader2, Settings, Trash2 } from 'lucide-react'
@@ -16,6 +21,18 @@ import {
   type StoredConfig,
 } from '../config/api'
 
+/**
+ * Settings page component for token registration and management.
+ *
+ * Displays either:
+ * - A registration form if no token is configured
+ * - Current configuration details with a delete option if configured
+ *
+ * @returns The rendered settings page component
+ *
+ * @example
+ * <SettingsPage />
+ */
 export function SettingsPage() {
   const [apiUrl, setApiUrl] = useState('https://haldev.cybermeet.fr')
   const [token, setToken] = useState('')
@@ -29,6 +46,14 @@ export function SettingsPage() {
     setCurrentConfig(getStoredConfig())
   }, [])
 
+  /**
+   * Handles the token registration form submission.
+   *
+   * Validates the input, registers the token with the API,
+   * and updates the local configuration state on success.
+   *
+   * @param e - The form submission event
+   */
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault()
     if (!token.trim() || !apiUrl.trim() || isLoading) return
@@ -49,6 +74,12 @@ export function SettingsPage() {
     }
   }
 
+  /**
+   * Handles the token deletion action.
+   *
+   * Removes the stored token from the server and clears
+   * the local configuration state. Shows success/error feedback.
+   */
   const handleDelete = async () => {
     if (isLoading) return
 

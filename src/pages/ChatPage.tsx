@@ -4,10 +4,43 @@ import { ChatMessage } from '../components/ChatMessage'
 import { isConfigured } from '../config/api'
 import { useChat } from '../hooks/useChat'
 
+/**
+ * Props for the ChatPage component
+ */
 interface ChatPageProps {
+  /**
+   * Optional ID of an existing conversation to load and continue.
+   * If provided, the conversation history will be loaded on mount.
+   * If undefined, starts a new conversation.
+   */
   conversationId?: string
 }
 
+/**
+ * Main chat interface page for the Halapi application.
+ *
+ * This component provides the primary chat functionality including:
+ * - Displaying chat messages in a scrollable container
+ * - Sending new messages via the ChatInput component
+ * - Loading existing conversations by ID
+ * - Auto-scrolling to the latest message
+ * - Starting new chat sessions
+ *
+ * The page requires API configuration (VITE_HALAPI_TOKEN) to function.
+ * If not configured, it displays a configuration required message.
+ *
+ * @param props - The component props
+ * @param props.conversationId - Optional conversation ID to load on mount
+ * @returns The rendered chat page component
+ *
+ * @example
+ * // New conversation
+ * <ChatPage />
+ *
+ * @example
+ * // Continue existing conversation
+ * <ChatPage conversationId="conv_123abc" />
+ */
 export function ChatPage({ conversationId }: ChatPageProps) {
   const { messages, isStreaming, error, sendMessage, stopStreaming, loadConversation, clearChat } =
     useChat({ initialConversationId: conversationId })

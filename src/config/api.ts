@@ -34,16 +34,16 @@ export function getStoredConfig(): StoredConfig | null {
 }
 
 /**
- * Store config in localStorage
+ * Store config in localStorage (internal use only)
  */
-export function storeConfig(config: StoredConfig): void {
+function storeConfig(config: StoredConfig): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
 }
 
 /**
- * Clear stored config from localStorage
+ * Clear stored config from localStorage (internal use only)
  */
-export function clearConfig(): void {
+function clearConfig(): void {
   localStorage.removeItem(STORAGE_KEY)
 }
 

@@ -4,6 +4,13 @@ import type { Message, Music, Suggestion, ToolCall } from '../../halapi-js/src'
 import { BookCard } from './BookCard'
 import { MusicCard } from './MusicCard'
 
+/**
+ * Generates a unique key for a music item in React lists.
+ * Uses track/album IDs when available, falls back to title+artist combination.
+ * @param item - The music item (album or track)
+ * @param index - Fallback index if no unique identifier is found
+ * @returns A unique string key for the item
+ */
 function getMusicKey(item: Music, index: number): string {
   if (item.type === 'album') {
     const title = item.album ?? item.title ?? index
@@ -16,10 +23,16 @@ function getMusicKey(item: Music, index: number): string {
 }
 
 interface ChatMessageProps {
+  /** The message object containing content, role, and artifacts */
   message: Message
+  /** Optional callback when user clicks a suggestion button */
   onSuggestionClick?: (query: string) => void
 }
 
+/**
+ * Displays a colored dot indicating tool call status.
+ * Green for success, red for error, yellow for pending.
+ */
 function ToolCallIndicator({ toolCall }: { toolCall: ToolCall }) {
   const statusClass =
     toolCall.status === 'success'
@@ -35,6 +48,10 @@ function ToolCallIndicator({ toolCall }: { toolCall: ToolCall }) {
   )
 }
 
+/**
+ * Clickable button displaying a suggested follow-up query.
+ * Shows label with sparkle icon, sends query on click.
+ */
 function SuggestionButton({
   suggestion,
   onClick,
@@ -55,6 +72,11 @@ function SuggestionButton({
   )
 }
 
+/**
+ * Renders a chat message with markdown content and artifacts.
+ * Displays books, music recommendations, and suggestion buttons.
+ * Shows metadata (agent, model, execution time) for assistant messages.
+ */
 export function ChatMessage({ message, onSuggestionClick }: ChatMessageProps) {
   const isUser = message.role === 'user'
   const { artifacts, toolCalls } = message

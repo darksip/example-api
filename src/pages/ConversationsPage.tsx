@@ -2,10 +2,38 @@ import { ConversationItem } from '../components/ConversationItem'
 import { isConfigured } from '../config/api'
 import { useConversations } from '../hooks/useConversations'
 
+/**
+ * Props for the ConversationsPage component
+ */
 interface ConversationsPageProps {
+  /**
+   * Callback invoked when a user selects a conversation from the list.
+   * Typically used to navigate to the ChatPage with the selected conversation.
+   * @param id - The unique identifier of the selected conversation
+   */
   onSelectConversation: (id: string) => void
 }
 
+/**
+ * Conversation history list page for the Halapi application.
+ *
+ * This component displays a list of all previous conversations and allows users to:
+ * - View their conversation history
+ * - Select a conversation to continue chatting
+ * - Refresh the conversation list
+ *
+ * The page requires API configuration (VITE_HALAPI_TOKEN) to function.
+ * If not configured, it displays a configuration required message.
+ *
+ * @param props - The component props
+ * @param props.onSelectConversation - Callback when a conversation is selected
+ * @returns The rendered conversations page component
+ *
+ * @example
+ * <ConversationsPage
+ *   onSelectConversation={(id) => navigateToChat(id)}
+ * />
+ */
 export function ConversationsPage({ onSelectConversation }: ConversationsPageProps) {
   const { conversations, isLoading, error, refresh } = useConversations()
   const configured = isConfigured()

@@ -1,19 +1,34 @@
 import type { Music, MusicAlbum, MusicTrackItem } from '../../halapi-js/src'
 
 interface MusicCardProps {
+  /** The music item to display (album or track) */
   music: Music
 }
 
+/**
+ * Formats a duration in seconds to mm:ss format.
+ * @param seconds - Duration in seconds
+ * @returns Formatted string like "3:45"
+ */
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
+/**
+ * Type guard to check if a music item is an album.
+ * @param music - The music item to check
+ * @returns True if the item is an album
+ */
 function isAlbum(music: Music): music is MusicAlbum {
   return music.type === 'album'
 }
 
+/**
+ * Displays an album card with cover, title, artist, year, label,
+ * track listing (first 5), and genres.
+ */
 function AlbumCard({ album }: { album: MusicAlbum }) {
   const coverUrl = album.imageUrl ?? album.albumImageUrl ?? album.coverUrl
   const title = album.album ?? album.title ?? 'Unknown Album'
@@ -63,6 +78,10 @@ function AlbumCard({ album }: { album: MusicAlbum }) {
   )
 }
 
+/**
+ * Displays a single track card with cover, title, artist, year,
+ * label, album name, disc/track number, and duration.
+ */
 function TrackCard({ track }: { track: MusicTrackItem }) {
   const coverUrl = track.imageUrl ?? track.albumImageUrl ?? track.coverUrl
   const title = track.track ?? track.title
@@ -92,6 +111,10 @@ function TrackCard({ track }: { track: MusicTrackItem }) {
   )
 }
 
+/**
+ * Displays a music recommendation card (album or track).
+ * Delegates to AlbumCard or TrackCard based on music type.
+ */
 export function MusicCard({ music }: MusicCardProps) {
   if (isAlbum(music)) {
     return <AlbumCard album={music} />

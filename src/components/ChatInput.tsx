@@ -2,12 +2,20 @@ import { type KeyboardEvent, useCallback, useState } from 'react'
 import { Send, Square } from 'lucide-react'
 
 interface ChatInputProps {
+  /** Callback when user sends a message */
   onSend: (message: string) => void
+  /** Callback to stop the current streaming response */
   onStop: () => void
+  /** Whether a response is currently being streamed */
   isStreaming: boolean
+  /** Disables the input (e.g., when not connected) */
   disabled?: boolean
 }
 
+/**
+ * Message input component with send/stop button.
+ * Supports Ctrl+Enter to send, shows stop button during streaming.
+ */
 export function ChatInput({ onSend, onStop, isStreaming, disabled = false }: ChatInputProps) {
   const [input, setInput] = useState('')
 
