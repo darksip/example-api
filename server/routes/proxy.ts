@@ -60,8 +60,22 @@ proxy.all('/*', async (c) => {
       }
     })
 
-    // Stream the response body
-    return new Response(response.body, {
+    // Check if this is a streaming response (SSE)
+    const contentType = response.headers.get('content-type') || ''
+    const isStreaming = contentType.includes('text/event-stream')
+
+    if (isStreaming) {
+      // For SSE, stream the response body directly
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      })
+    }
+
+    // For non-streaming responses, buffer the entire body to avoid truncation
+    const body = await response.text()
+    return new Response(body, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
